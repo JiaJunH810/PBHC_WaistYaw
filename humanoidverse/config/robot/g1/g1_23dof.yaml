@@ -33,11 +33,7 @@ robot:
               'waist_yaw_joint', 
               'left_shoulder_pitch_joint', 'left_shoulder_roll_joint', 'left_shoulder_yaw_joint', 'left_elbow_joint', 'left_wrist_roll_joint', 
               'right_shoulder_pitch_joint', 'right_shoulder_roll_joint', 'right_shoulder_yaw_joint', 'right_elbow_joint', 'right_wrist_roll_joint']
-#             ['left_hip_pitch_joint', 'left_hip_roll_joint', 'left_hip_yaw_joint', 'left_knee_joint', 'left_ankle_pitch_joint', 'left_ankle_roll_joint',
-  #             'right_hip_pitch_joint', 'right_hip_roll_joint', 'right_hip_yaw_joint', 'right_knee_joint', 'right_ankle_pitch_joint', 'right_ankle_roll_joint',
-  #             'waist_yaw_joint', 'waist_roll_joint', 'waist_pitch_joint',
-  #             'left_shoulder_pitch_joint', 'left_shoulder_roll_joint', 'left_shoulder_yaw_joint', 'left_elbow_joint', 
-  #             'right_shoulder_pitch_joint', 'right_shoulder_roll_joint', 'right_shoulder_yaw_joint', 'right_elbow_joint']
+
   upper_dof_names: ['left_shoulder_pitch_joint', 'left_shoulder_roll_joint', 'left_shoulder_yaw_joint', 'left_elbow_joint', 'left_wrist_roll_joint',
                     'right_shoulder_pitch_joint', 'right_shoulder_roll_joint', 'right_shoulder_yaw_joint', 'right_elbow_joint', 'right_wrist_roll_joint']
   upper_left_arm_dof_names: ['left_shoulder_pitch_joint', 'left_shoulder_roll_joint', 'left_shoulder_yaw_joint', 'left_elbow_joint', 'left_wrist_roll_joint']
@@ -86,8 +82,7 @@ robot:
                 'torso_link', 
                 'left_shoulder_pitch_link', 'left_shoulder_roll_link', 'left_shoulder_yaw_link', 'left_elbow_link', 'left_wrist_roll_rubber_hand', 
                 'right_shoulder_pitch_link', 'right_shoulder_roll_link', 'right_shoulder_yaw_link', 'right_elbow_link', 'right_wrist_roll_rubber_hand']
-# ['pelvis', 'left_hip_pitch_link', 'left_hip_roll_link', 'left_hip_yaw_link', 'left_knee_link', 'left_ankle_pitch_link', 'left_ankle_roll_link', 
-# 'right_hip_pitch_link', 'right_hip_roll_link', 'right_hip_yaw_link', 'right_knee_link', 'right_ankle_pitch_link', 'right_ankle_roll_link', 'waist_yaw_link', 'waist_roll_link', 'torso_link', 'left_shoulder_pitch_link', 'left_shoulder_roll_link', 'left_shoulder_yaw_link', 'left_elbow_link', 'right_shoulder_pitch_link', 'right_shoulder_roll_link', 'right_shoulder_yaw_link', 'right_elbow_link']
+
 
   terminate_after_contacts_on : ["pelvis", "shoulder", "hip"]
   penalize_contacts_on: ["pelvis", "shoulder", "hip"]
@@ -125,10 +120,10 @@ robot:
 
 
 
-  randomize_link_body_names: [
-    'pelvis', 'left_hip_yaw_link', 'left_hip_roll_link', 'left_hip_pitch_link', 'left_knee_link',
-    'right_hip_yaw_link', 'right_hip_roll_link', 'right_hip_pitch_link', 'right_knee_link',
-  ]
+  # randomize_link_body_names: [
+  #   'pelvis', 'left_hip_yaw_link', 'left_hip_roll_link', 'left_hip_pitch_link', 'left_knee_link',
+  #   'right_hip_yaw_link', 'right_hip_roll_link', 'right_hip_pitch_link', 'right_knee_link',
+  # ]
 
   control:
     control_type: P
@@ -188,17 +183,16 @@ robot:
     xml_file: "g1/${robot.asset.robot_type}.xml"
     # xml_file: "g1/${robot.asset.robot_type}_fitmotionONLY.xml"
     robot_type: g1_23dof
-    self_collisions: 1 # 1 to disable, 0 to enable self collisions
+    self_collisions: 0 # 1 to disable, 0 to enable self collisions
     default_dof_drive_mode: 3
 
     fix_base_link: False # TEST: fix base link to world
 
   motion:
-    motion_file : 'humanoidverse/data/motions/g1_23dof/0-StraightPunch.pkl'
-    # motion_file : 'humanoidverse/data/motions/g1_29dof/v1/singles/0-ACCAD_Male2General_c3d_A6- Box lift_poses.pkl'
+    motion_lib_type: 'WJX'
+    motion_file : ???
     asset:
-      assetRoot: "humanoidverse/data/robots/g1/"
-      # assetFileName: "g1_29dof_anneal_23dof.xml"
+      assetRoot: "description/robots/g1/"
       assetFileName: "g1_23dof.xml"
       urdfFileName: "g1_23dof.urdf"
 
@@ -232,7 +226,8 @@ robot:
     limb_weight_group: 
       - ['left_hip_pitch_link', 'left_hip_roll_link', 'left_hip_yaw_link', 'left_knee_link', 'left_ankle_pitch_link', 'left_ankle_roll_link']
       - ['right_hip_pitch_link', 'right_hip_roll_link', 'right_hip_yaw_link', 'right_knee_link', 'right_ankle_pitch_link', 'right_ankle_roll_link']
-      - ['pelvis', 'waist_yaw_link', 'waist_roll_link', 'torso_link']
+      #- ['pelvis', 'waist_yaw_link', 'waist_roll_link', 'torso_link']
+      - ['pelvis', 'waist_yaw_link', 'torso_link']
       - ['left_shoulder_pitch_link', 'left_shoulder_roll_link', 'left_shoulder_yaw_link', 'left_elbow_link']
       - ['right_shoulder_pitch_link', 'right_shoulder_roll_link', 'right_shoulder_yaw_link', 'right_elbow_link']
 

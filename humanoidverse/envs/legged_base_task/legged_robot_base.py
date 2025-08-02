@@ -23,7 +23,9 @@ from humanoidverse.envs.env_utils.visualization import Point
 from loguru import logger
 import copy
 
-
+from isaac_utils.customize import (
+    batch_local_to_world_com
+)
 
 
 class LeggedRobotBase(BaseTask):
@@ -932,6 +934,48 @@ class LeggedRobotBase(BaseTask):
     def _reward_penalty_orientation(self):
         # Penalize non flat base orientation
         return torch.sum(torch.square(self.projected_gravity[:, :2]), dim=1)
+    
+    ##### customize reward ####
+    def _reward_penalty_com_offset(self):
+        body_mass = self.simulator._body_mass
+        body_local_com = self.simulator._body_local_com
+        rigid_body_pos = self.simulator._rigid_body_pos
+        rigid_body_rot = self.simulator._rigid_body_rot # 估计是xyzw
+        body_list = self.simulator._body_list
+
+        world_centers = batch_local_to_world_com(body_local_com, rigid_body_pos, rigid_body_rot)
+
+        # 计算质量与位置的乘积 (利用广播机制自动扩展维度)
+        mass_pos = body_mass.unsqueeze(2) * world_centers  # 形状变为[环境数量, 刚体数量, 3]
+
+        # 对刚体数量维度(dim=1)求和，得到每个环境的质量-位置乘积总和
+        sum_mass_pos = torch.sum(mass_pos, dim=1)  # 形状变为[环境数量, 3]
+        
+        # 计算每个环境的总质量
+        total_mass = torch.sum(body_mass, dim=1, keepdim=True)  # 形状变为[环境数量, 1]，保持维度便于广播
+
+        # 计算每个环境的整体质心 (质量-位置乘积总和 / 总质量)
+        com_batch = sum_mass_pos / total_mass  # 形状为[环境数量, 3]
+
+        left_ankle_pos = rigid_body_pos[:, body_list.index('left_ankle_pitch_link'),:]
+        right_ankle_pos = rigid_body_pos[:, body_list.index('right_ankle_pitch_link'), :]
+        # 获取脚踝中心位置
+        ankle_center = (left_ankle_pos + right_ankle_pos) / 2
+
+        # 提取水平面(xy平面)坐标
+        com_xy = com_batch[:, :2]  # 只取x,y坐标
+        ankle_center_xy = ankle_center[:, :2]
+        
+        # # 计算重心与脚踝中心的水平距离
+        # horizontal_distance = torch.norm(com_xy - ankle_center_xy, dim=1)
+        
+        # # 设置衰减参数sigma（论文中使用0.2）
+        # sigma = 0.2
+        
+        # # 计算重心跟踪奖励（指数形式）
+        # cog_reward = torch.exp(-horizontal_distance / (sigma**2))
+        
+        return torch.sum(torch.square(com_xy - ankle_center_xy), dim=1)
 
     ######################## LIMITS REWARDS #########################
 

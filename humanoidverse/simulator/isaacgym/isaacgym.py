@@ -25,6 +25,10 @@ class IsaacGym(BaseSimulator):
         if config.save_rendering_dir is not None:
             self.save_rendering_dir = Path(config.save_rendering_dir)
 
+        # 存储下所有环境的句柄和机器人的句柄
+        self.all_env_handle = []
+        self.all_robot_handle = []
+
     def set_headless(self, headless):
         # call super
         super().set_headless(headless)
@@ -244,10 +248,39 @@ class IsaacGym(BaseSimulator):
             for i in range(self.num_envs):
                 # create env instance
                 env_handle = self.gym.create_env(self.sim, env_lower, env_upper, int(np.sqrt(self.num_envs)))
+                # 存储下环境的句柄
+                self.all_env_handle.append(env_handle)
                 self._build_each_env(i, env_handle)
                 # progress.update(task, advance=1)
         self.friction_coeffs = self.friction_coeffs.to(self.device)
+
+        self.obtain_data_after_create_env() # 在创建环境后获取各种域随机化后的内容
         return self.envs, self.robot_handles
+
+    def obtain_data_after_create_env(self):
+        num_envs = self.num_envs
+        body_names = self.body_names
+        body_list = self._body_list
+        num_bodies = self.num_bodies
+        self._body_mass = torch.zeros(num_envs, num_bodies, dtype=torch.float, device=self.device, requires_grad=False)
+        self._body_local_com = torch.zeros(num_envs, num_bodies, 3, dtype=torch.float, device=self.device, requires_grad=False)
+        
+        for i in range(num_envs):
+            env_ptr = self.all_env_handle[i]
+            robot_handle = self.all_robot_handle[i]
+
+            body_props = self.gym.get_actor_rigid_body_properties(env_ptr, robot_handle)
+            
+            # 确保我们获取的属性数量与预期一致
+            assert len(body_props) == num_bodies, f"Expected {num_bodies} body properties, got {len(body_props)}"
+            
+            for name in body_names:
+                index = body_list.index(name)
+                props = body_props[index]
+                self._body_mass[i, index] = props.mass
+                self._body_local_com[i, index, 0] = props.com.x
+                self._body_local_com[i, index, 1] = props.com.y
+                self._body_local_com[i, index, 2] = props.com.z
 
     def _build_each_env(self, env_id, env_ptr):
         start_pose = gymapi.Transform()
@@ -268,6 +301,9 @@ class IsaacGym(BaseSimulator):
                                              self.env_config.robot.asset.robot_type, 
                                              env_id, 
                                              self.env_config.robot.asset.self_collisions, 0)
+        # 根据环境顺序存储机器人的句柄
+        self.all_robot_handle.append(robot_handle)
+
         self._body_list = self.gym.get_actor_rigid_body_names(env_ptr, robot_handle)
         dof_props = self._process_dof_props(dof_props_asset, env_id)
         self.gym.set_actor_dof_properties(env_ptr, robot_handle, dof_props)
