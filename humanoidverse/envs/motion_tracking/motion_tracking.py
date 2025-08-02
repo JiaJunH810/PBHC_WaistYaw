@@ -193,10 +193,12 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         self.motion_start_idx = 0
         self.num_motions = self._motion_lib._num_unique_motions
         
-        
+        print("#########################################UPUPUPUPUPUPUPUPUPUPUPPU", self._motion_lib.has_contact_mask)
+        print("#######################hasattr", hasattr(self._motion_lib, 'has_contact_mask'))
         if hasattr(self._motion_lib, 'has_contact_mask') and self._motion_lib.has_contact_mask:
             self.ref_contact_mask = torch.zeros(self.num_envs, self._motion_lib._contact_size, # type: ignore
                                                 dtype=torch.float, device=self.device, requires_grad=False)
+            print("#################INININININININININININININI")
             
         # self.ref_init_yaw = 
 
@@ -1152,9 +1154,11 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         ...
 
     def _reward_teleop_contact_mask(self):
+        # 当前时刻，机器人身体各个部分与环境是否发生接触的实际状态[1或0]
         cur_contact_mask = self.contacts_filt
+        # 各个部分希望的接触状态[1或0]
         ref_contact_mask = self.ref_contact_mask
-        
+        print(ref_contact_mask)
         error_contact_mask = (cur_contact_mask - ref_contact_mask).abs()
 
         rew = 1 - error_contact_mask.mean(dim=-1)
@@ -1326,3 +1330,9 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         # Penalize feet hitting vertical surfaces
         return torch.any(torch.norm(self.simulator.contact_forces[:, self.feet_indices, :2], dim=2) >\
              5 *torch.abs(self.simulator.contact_forces[:, self.feet_indices, 2]), dim=1)
+
+    #### jiajun ####
+    def _reward_foot_contact_area(self):
+        print("reward_foot_contact_area" * 5)
+        pass
+    #### jiajun ####

@@ -198,11 +198,13 @@ class LeggedRobotBase(BaseTask):
         # prepare list of functions
         self.reward_functions = []
         self.reward_names = []
+
         for name, scale in self.reward_scales.items():
             if name=="termination":
                 continue
             self.reward_names.append(name)
             name = '_reward_' + name
+            #print("all_reward_name:################", name)
             self.reward_functions.append(getattr(self, name))
             # reward episode sums
             self.episode_sums = {name: torch.zeros(self.num_envs, dtype=torch.float, device=self.device, requires_grad=False)
@@ -378,8 +380,18 @@ class LeggedRobotBase(BaseTask):
 
     def _post_compute_observations_callback(self):
         self.last_actions[:] = self.actions[:]
+        #print(f'last_actions: {self.last_actions.shape}, {self.last_actions}')
+        self.last_actions[:,[13, 14]] = 0.0
+        #print(f'last_actions after zeroing: {self.last_actions[0]}')
+
         self.last_dof_pos[:] = self.simulator.dof_pos[:]
+        #print(f'last_dof_pos: {self.last_dof_pos.shape}, {self.last_dof_pos}')
+        self.last_dof_pos[:,[13, 14]] = 0.0
+
         self.last_dof_vel[:] = self.simulator.dof_vel[:]
+        #print(f'last_dof_vel: {self.last_dof_vel.shape}, {self.last_dof_vel}')
+        self.last_dof_vel[:,[13, 14]] = 0.0
+
         self.last_root_vel[:] = self.simulator.robot_root_states[:, 7:13]
         
         self.last_contacts[:] = self.contacts
@@ -750,6 +762,7 @@ class LeggedRobotBase(BaseTask):
         parse_observation(self, history_obs_list, self.hist_obs_dict, self.config.obs.obs_scales, self.config.obs.noise_scales, noise_extra_scale)
         
         self._post_config_observation_callback()
+        #_post_compute_observations_callback
 
     def _post_config_observation_callback(self):
         self.obs_buf_dict = dict()
@@ -769,10 +782,20 @@ class LeggedRobotBase(BaseTask):
         Returns:
             [torch.Tensor]: Torques sent to the simulation
         """
+        actions[:,[13, 14]] = 0.0 # Disable Left Ankle Roll, Right Ankle Roll
         actions_scaled = actions * self.config.robot.control.action_scale
         control_type = self.config.robot.control.control_type
         if control_type=="P":
-            torques = self._kp_scale * self.p_gains*(actions_scaled + self.default_dof_pos - self.simulator.dof_pos) - self._kd_scale * self.d_gains*self.simulator.dof_vel
+            
+            target_dof_pos = actions_scaled + self.default_dof_pos
+            #target_dof_pos[:, [5, 11, 13, 14]] = 0.0 # Disable Left Ankle Roll, Right Ankle Roll, Waist Roll, Waist Pitch
+            target_dof_pos[:, [13, 14]] = 0.0
+            torques = self._kp_scale * self.p_gains * (target_dof_pos - self.simulator.dof_pos) - self._kd_scale * self.d_gains * self.simulator.dof_vel         
+            
+        
+            # torques = self._kp_scale * self.p_gains*(actions_scaled + self.default_dof_pos - self.simulator.dof_pos) - self._kd_scale * self.d_gains*self.simulator.dof_vel
+        
+        
         elif control_type=="V":
             torques = self._kp_scale * self.p_gains*(actions_scaled - self.simulator.dof_vel) - self._kd_scale * self.d_gains*(self.simulator.dof_vel - self.last_dof_vel)/self.sim_dt
         elif control_type=="T":
