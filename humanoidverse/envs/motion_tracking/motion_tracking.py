@@ -290,9 +290,9 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         sdc_curr = self.config.soft_dynamic_correction.curriculum
         
         if self.average_episode_length < sdc_curr.level_down_threshold:
-            self.sdc_alpha *= (1 + sdc_curr.degree)
-        elif self.average_episode_length > sdc_curr.level_up_threshold:
             self.sdc_alpha *= (1 - sdc_curr.degree)
+        elif self.average_episode_length > sdc_curr.level_up_threshold:
+            self.sdc_alpha *= (1 + sdc_curr.degree)
         self.sdc_alpha = np.clip(self.sdc_alpha, sdc_curr.min_alpha, sdc_curr.max_alpha)
 
     def _update_terminate_when_dof_far_curriculum(self):

@@ -117,6 +117,10 @@ class LeggedRobotBase(BaseTask):
         if self.config.domain_rand.push_robots:
             self.push_interval_s = torch.randint(self.config.domain_rand.push_interval_s[0], self.config.domain_rand.push_interval_s[1], (self.num_envs,), device=self.device)
 
+            # 判断推机器人是否进行课程学习
+            if self.config.domain_rand.push_robot_curriculum:
+                self.push_robot_vel_xy = self.config.domain_rand.max_push_vel_xy
+
     def _init_counters(self):
         self.common_step_counter = 0
         self.push_robot_counter = torch.zeros(self.num_envs, dtype=torch.int, device=self.device, requires_grad=False)
@@ -142,8 +146,8 @@ class LeggedRobotBase(BaseTask):
         self._kd_scale = torch.ones(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
         self._rfi_lim_scale = torch.ones(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
         self._rao_scale = torch.ones(self.num_envs, self.num_dof, dtype=torch.float, device=self.device, requires_grad=False)
-        self.push_robot_vel_buf = torch.zeros(self.num_envs, 2, dtype=torch.float, device=self.device, requires_grad=False)
-        self.record_push_robot_vel_buf = torch.zeros(self.num_envs, 2, dtype=torch.float, device=self.device, requires_grad=False)
+        self.push_robot_vel_buf = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
+        self.record_push_robot_vel_buf = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
 
         self.feet_air_max_height = torch.zeros(self.num_envs, self.feet_indices.shape[0], dtype=torch.float, device=self.device, requires_grad=False)
 
@@ -569,6 +573,9 @@ class LeggedRobotBase(BaseTask):
             mask[env_ids] = True
             mask = mask.unsqueeze(-1).expand_as(self.noise_process.x)
             self.noise_process.reset_part(mask)
+        # 如果推机器人使用了课程学习,则根据平均运行长度来更新degree
+        if self.config.domain_rand.push_robots and self.config.domain_rand.push_robot_curriculum:
+            self._update_push_robot_curriculum()
     
     def _episodic_domain_randomization(self, env_ids):
         """ Update scale of Kp, Kd, rfi lim"""
@@ -904,6 +911,19 @@ class LeggedRobotBase(BaseTask):
                 curriculum_cfg.soft_torque_max_limit
             )
 
+    def _update_push_robot_curriculum(self):
+        level_down_threshold = self.config.domain_rand.push_robot_level_down_threshold
+        level_up_threshold = self.config.domain_rand.push_robot_level_up_threshold
+        if self.average_episode_length < level_down_threshold:
+            self.push_robot_vel_xy *= (1 + self.config.domain_rand.push_robot_degree)
+        elif self.average_episode_length > level_up_threshold:
+            self.push_robot_vel_xy *= (1 - self.config.domain_rand.push_robot_degree)
+        self.push_robot_vel_xy = np.clip(
+            self.push_robot_vel_xy,
+            self.config.domain_rand.push_robot_min_limit,
+            self.config.domain_rand.push_robot_max_limit
+        )
+
     #------------ reward functions----------------
     ########################### PENALTY REWARDS ###########################
 
@@ -1095,13 +1115,24 @@ class LeggedRobotBase(BaseTask):
             return
         self.need_to_refresh_envs[env_ids] = True
         max_vel = self.config.domain_rand.max_push_vel_xy
-        self.push_robot_vel_buf[env_ids] = torch_rand_float(-max_vel, max_vel, (len(env_ids), 2), device=str(self.device))  # lin vel x/y
+
+        # 应用推机器人的课程学习
+        if self.config.domain_rand.push_robot_curriculum:
+            max_vel = self.push_robot_vel_xy
+
+        
+        # 存储下当前回合下推机器人的最大速度
+        self.log_dict['push_robot_vel_xy_value'] = torch.tensor(max_vel, dtype=torch.float)
+
+        self.push_robot_vel_buf[env_ids] = torch_rand_float(-max_vel, max_vel, (len(env_ids), 3), device=str(self.device))  # lin vel x/y
+        # 增加z轴负方向的速度
+        self.push_robot_vel_buf[env_ids][2] = -abs(self.push_robot_vel_buf[env_ids][2])
         self.record_push_robot_vel_buf[env_ids] = self.push_robot_vel_buf[env_ids].clone()
         
         if '_push_fixed' in self.config.domain_rand and self.config.domain_rand._push_fixed:
-            self.simulator.robot_root_states[env_ids, 7:9] += self.push_robot_vel_buf[env_ids]
+            self.simulator.robot_root_states[env_ids, 7:10] += self.push_robot_vel_buf[env_ids]
         else:
-            self.simulator.robot_root_states[env_ids, 7:9] = self.push_robot_vel_buf[env_ids]
+            self.simulator.robot_root_states[env_ids, 7:10] = self.push_robot_vel_buf[env_ids]
         # self.gym.set_actor_root_state_tensor(self.sim, gymtorch.unwrap_tensor(self.simulator.all_root_states))
 
 

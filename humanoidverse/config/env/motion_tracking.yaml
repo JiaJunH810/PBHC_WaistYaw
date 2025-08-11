@@ -38,8 +38,10 @@ env:
       terminate_when_motion_far_threshold_max: 2.0
       terminate_when_motion_far_threshold_min: 0.3
       terminate_when_motion_far_curriculum_degree: 0.000025
-      terminate_when_motion_far_curriculum_level_down_threshold: 40
-      terminate_when_motion_far_curriculum_level_up_threshold: 42
+      # terminate_when_motion_far_curriculum_level_down_threshold: 40
+      # terminate_when_motion_far_curriculum_level_up_threshold: 42
+      terminate_when_motion_far_curriculum_level_down_threshold: 50
+      terminate_when_motion_far_curriculum_level_up_threshold: 60
 
       terminate_when_dof_far_curriculum:
         enable: True
@@ -67,16 +69,16 @@ env:
 
 
     soft_dynamic_correction:
-      enable: False
-      alpha: 0.1
-      type: "deter" # "prob" or "deter"
+      enable: true
+      alpha: 0.005
+      type: "prob" # "prob" or "deter"
       curriculum:
         enable: True
         max_alpha: 0.9
         min_alpha: 0.0
         degree: 0.00001
         level_down_threshold: 40
-        level_up_threshold: 42
+        level_up_threshold: 60
 
 
 
