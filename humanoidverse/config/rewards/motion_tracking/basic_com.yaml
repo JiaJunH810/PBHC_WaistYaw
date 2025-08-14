@@ -57,8 +57,7 @@ rewards:
     teleop_body_rot: 0.1
     teleop_body_vel: 1.0
     teleop_body_ang_vel: 15.0
-    teleop_joint_pos_upper: 0.3
-    teleop_joint_pos_lower: 0.3
+    teleop_joint_pos: 0.3
     teleop_joint_vel: 30.0
 
   adaptive_tracking_sigma:

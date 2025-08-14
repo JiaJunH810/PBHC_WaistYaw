@@ -673,10 +673,8 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         # 如果有限制的关节电机，只取非限制部分
         if "is_limit_dof" in self.config.robot and self.config.robot.is_limit_dof.enable:
             self.keep_dof_act_indices = [self.simulator.dof_names.index(name) for name in self.config.robot.is_limit_dof.keep_dof_act_names]
-            self.dif_global_body_pos[:, self.keep_dof_act_indices]
-            self.dif_global_body_rot[:, self.keep_dof_act_indices]
-            self.dif_global_body_vel[:, self.keep_dof_act_indices]
-            self.dif_global_body_ang_vel[:, self.keep_dof_act_indices]
+            self.dif_joint_angles = self.dif_joint_angles[:, self.keep_dof_act_indices]
+            self.dif_joint_velocities = self.dif_joint_velocities[:, self.keep_dof_act_indices]
         
         # print(self.dif_joint_angles.max(),self.dif_global_body_pos.norm(dim=-1).max())
 
@@ -1279,24 +1277,15 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
     # 上下身分离
     def _reward_teleop_joint_position(self):
         joint_pos_diff = self.dif_joint_angles
-
-        upper_joint_pos_diff = joint_pos_diff[:, self.upper_dof_id]
-        lower_joint_pos_diff = joint_pos_diff[:, self.lower_body_id]
-
-        diff_joint_pos_dist_upper = (upper_joint_pos_diff**2).mean(dim=-1)
-        diff_joint_pos_dist_lower = (lower_joint_pos_diff**2).mean(dim=-1)
-
-        upper_joint_pos = torch.exp(-diff_joint_pos_dist_upper / self.config.rewards.reward_tracking_sigma.teleop_joint_pos_upper)
-        lower_joint_pos = torch.exp(-diff_joint_pos_dist_lower / self.config.rewards.reward_tracking_sigma.teleop_joint_pos_lower)
-
+        diff_joint_pos_dist = (joint_pos_diff**2).mean(dim=-1)
         
-        self._update_adaptive_sigma(upper_joint_pos, 'teleop_joint_pos_upper')
-        self._update_adaptive_sigma(lower_joint_pos, "teleop_joint_pos_lower")
-
-        joint_pos = upper_joint_pos * self.config.rewards.teleop_joint_pos_upper_weight + lower_joint_pos * self.config.rewards.teleop_joint_pos_lower_weight
-
+        # diff_joint = (joint_pos_diff**2)
+        # print(f"{diff_joint_pos_dist=} \t| {diff_joint.max()=} \t| {diff_joint.min()=}")
+        r_joint_pos = torch.exp(-diff_joint_pos_dist / self.config.rewards.reward_tracking_sigma.teleop_joint_pos)
+        
+        self._update_adaptive_sigma(diff_joint_pos_dist, 'teleop_joint_pos')
         # self._reward_feet_air_time() #DEBUG:
-        return joint_pos
+        return r_joint_pos
     
     def _reward_teleop_joint_velocity(self):
         joint_vel_diff = self.dif_joint_velocities

@@ -11,10 +11,10 @@ domain_rand:
   push_robots: true
   push_interval_s: [5, 10]
   max_push_vel_xy: 0.5
-  push_robot_curriculum: true
-  push_robot_level_down_threshold: 40
-  push_robot_level_up_threshold: 70
-  push_robot_degree: 0.01
+  push_robot_curriculum: false
+  push_robot_level_down_threshold: 50
+  push_robot_level_up_threshold: 76
+  push_robot_degree: 0.0001
   push_robot_min_limit: 0.5
   push_robot_max_limit: 2.0
 
