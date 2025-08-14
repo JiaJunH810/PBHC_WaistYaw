@@ -671,7 +671,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         self.dif_joint_velocities = ref_joint_vel - self.simulator.dof_vel
         
         # 如果有限制的关节电机，只取非限制部分
-        if "is_limit_dof" in self.config.robot and self.config.robot.enable:
+        if "is_limit_dof" in self.config.robot and self.config.robot.is_limit_dof.enable:
             self.keep_dof_act_indices = [self.simulator.dof_names.index(name) for name in self.config.robot.is_limit_dof.keep_dof_act_names]
             self.dif_global_body_pos[:, self.keep_dof_act_indices]
             self.dif_global_body_rot[:, self.keep_dof_act_indices]
