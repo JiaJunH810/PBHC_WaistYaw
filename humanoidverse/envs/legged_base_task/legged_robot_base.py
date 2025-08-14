@@ -990,12 +990,22 @@ class LeggedRobotBase(BaseTask):
         # horizontal_distance = torch.norm(com_xy - ankle_center_xy, dim=1)
         
         # # 设置衰减参数sigma（论文中使用0.2）
-        # sigma = 0.2
+        sigma = 1.0
         
         # # 计算重心跟踪奖励（指数形式）
         # cog_reward = torch.exp(-horizontal_distance / (sigma**2))
         
-        return torch.sum(torch.square(com_xy - ankle_center_xy), dim=1)
+        return torch.sum((torch.square(com_xy - ankle_center_xy) - 0.01) / sigma, dim=1)
+    
+    def _reward_penalty_feet_contact_ground(self):
+        left_quat = self.simulator._rigid_body_rot[:, self.feet_indices[0]]
+        left_gravity = quat_rotate_inverse(left_quat, self.gravity_vec)
+        right_quat = self.simulator._rigid_body_rot[:, self.feet_indices[1]]
+        right_gravity = quat_rotate_inverse(right_quat, self.gravity_vec)
+
+        error_left = (abs(left_gravity[:, 0]) + abs(left_gravity[:, 1])) * self.contacts_filt[:, 0]
+        error_right = (abs(right_gravity[:, 0]) + abs(right_gravity[:, 1])) * self.contacts_filt[:, 1]
+        return error_left + error_right
 
     ######################## LIMITS REWARDS #########################
 

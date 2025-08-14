@@ -69,7 +69,7 @@ env:
 
 
     soft_dynamic_correction:
-      enable: true
+      enable: false
       alpha: 0.005
       type: "prob" # "prob" or "deter"
       curriculum:
