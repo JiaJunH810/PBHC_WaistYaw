@@ -9,8 +9,8 @@ domain_rand:
   
   _push_fixed: true
   push_robots: true
-  push_interval_s: [5, 10]
-  max_push_vel_xy: 0.5
+  push_interval_s: [3, 7]
+  max_push_vel_xy: 0.2
   push_robot_curriculum: False
   push_robot_level_down_threshold: 40
   push_robot_level_up_threshold: 70
@@ -20,8 +20,8 @@ domain_rand:
 
   randomize_base_com : True
   base_com_range: #kg
-      x : [-0.05, 0.05]
-      y : [-0.05, 0.05]
+      x : [-0.01, 0.01]
+      y : [-0.01, 0.01]
       z : [-0.01, 0.01]
 
   randomize_link_mass : True
@@ -58,8 +58,8 @@ domain_rand:
         'right_shoulder_pitch_link', 'right_shoulder_roll_link', 'right_shoulder_yaw_link', 'right_elbow_link',
     ]
   randomize_pd_gain : True
-  kp_range : [0.9, 1.1]
-  kd_range : [0.9, 1.1]
+  kp_range : [0.95, 1.05]
+  kd_range : [0.95, 1.05]
 
   parallel_serial_pd:
     # multiplicative composition with randomize_pd_gain, not replacing it
@@ -79,10 +79,10 @@ domain_rand:
   
   randomize_torque_rfi : True
   use_rao : True
-  rao_lim : 0.05
-  rfi_lim : 0.05
+  rao_lim : 0.03
+  rfi_lim : 0.03
   randomize_rfi_lim : True
-  rfi_lim_range : [0.5, 1.5]
+  rfi_lim_range : [0.5, 1.0]
 
   randomize_ctrl_delay : True
   ctrl_delay_step_range : [0, 2] # integer max real delay is 90ms

@@ -757,7 +757,6 @@ class LeggedRobotBase(BaseTask):
         # Compute history observations
         history_obs_list = self.history_handler.history.keys()
         parse_observation(self, history_obs_list, self.hist_obs_dict, self.config.obs.obs_scales, self.config.obs.noise_scales, noise_extra_scale)
-        
         self._post_config_observation_callback()
 
     def _post_config_observation_callback(self):
