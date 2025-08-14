@@ -63,6 +63,15 @@ robot:
                           25.0, 25.0, 25.0, 25.0, 25.0, 
                           25.0, 25.0, 25.0, 25.0, 25.0]
   
+  is_limit_dof:
+    enable: True
+    keep_dof_act_names: ['left_hip_pitch_joint', 'left_hip_roll_joint', 'left_hip_yaw_joint', 'left_knee_joint', 'left_ankle_pitch_joint', 'left_ankle_roll_joint', 
+              'right_hip_pitch_joint', 'right_hip_roll_joint', 'right_hip_yaw_joint', 'right_knee_joint', 'right_ankle_pitch_joint', 'right_ankle_roll_joint', 
+              'waist_yaw_joint', 
+              'left_shoulder_pitch_joint', 'left_shoulder_roll_joint', 'left_shoulder_yaw_joint', 'left_elbow_joint', 
+              'right_shoulder_pitch_joint', 'right_shoulder_roll_joint', 'right_shoulder_yaw_joint', 'right_elbow_joint']
+
+  
   # only apply for isaacsim
   dof_armature_list: [0.03, 0.03, 0.03, 0.03, 0.03, 0.03,
                       0.03, 0.03, 0.03, 0.03, 0.03, 0.03,
@@ -85,7 +94,7 @@ robot:
 
 
   terminate_after_contacts_on : ["pelvis", "shoulder", "hip"]
-  penalize_contacts_on: ["pelvis", "shoulder", "hip"]
+  penalize_contacts_on: ["pelvis", "shoulder", "hip", "elbow", "wrist"]
   init_state:
     pos: [0.0, 0.0, 0.8] # x,y,z [m]
     rot: [0.0, 0.0, 0.0, 1.0] # x,y,z,w [quat]
