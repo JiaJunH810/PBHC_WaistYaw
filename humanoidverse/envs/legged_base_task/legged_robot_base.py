@@ -1127,7 +1127,7 @@ class LeggedRobotBase(BaseTask):
         max_vel = self.config.domain_rand.max_push_vel_xy
 
         # 应用推机器人的课程学习
-        if self.config.domain_rand.push_robot_curriculum:
+        if "push_robot_curriculum" in self.config.domain_rand and self.config.domain_rand.push_robot_curriculum:
             max_vel = self.push_robot_vel_xy
 
         
@@ -1136,7 +1136,7 @@ class LeggedRobotBase(BaseTask):
 
         self.push_robot_vel_buf[env_ids] = torch_rand_float(-max_vel, max_vel, (len(env_ids), 3), device=str(self.device))  # lin vel x/y
         # 增加z轴负方向的速度
-        self.push_robot_vel_buf[env_ids][2] = -abs(self.push_robot_vel_buf[env_ids][2])
+        self.push_robot_vel_buf[env_ids, 2] = -abs(self.push_robot_vel_buf[env_ids, 2])
         self.record_push_robot_vel_buf[env_ids] = self.push_robot_vel_buf[env_ids].clone()
         
         if '_push_fixed' in self.config.domain_rand and self.config.domain_rand._push_fixed:
