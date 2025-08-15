@@ -26,13 +26,14 @@ rewards:
       teleop_joint_velocity: 3.0
       penalty_torques: -0.000001
       # penalty_dof_vel: -0.0001
-      # penalty_dof_acc: -2.5e-8
-      penalty_action_rate: -0.3  # Decreased from -0.5 to -0.3
-      feet_air_time: 1.2  # Increased from 1.0 to 1.2
+      penalty_dof_acc: -2.5e-8
+      penalty_action_rate: -0.01  # Decreased from -0.5 to -0.3
+      feet_air_time: 10.0
       penalty_feet_contact_forces: -0.01
       penalty_stumble: -2.0
       penalty_slippage: -3.0
       penalty_feet_ori: -1.0
+      penalty_pelvis_ankle_distance: -5.0  # New penalty for pelvis-ankle distance
       feet_heading_alignment_contact: -0.1
 
       limits_dof_pos: -20.0
@@ -123,5 +124,6 @@ rewards:
     "penalty_feet_ori",
     "penalty_slippage",
     "collision",
-    "penalty_com_offset"
+    "penalty_com_offset",
+    "penalty_pelvis_ankle_distance",
     ]

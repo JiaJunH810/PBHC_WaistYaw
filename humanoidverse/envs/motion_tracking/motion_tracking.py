@@ -201,9 +201,13 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         # self.ref_init_yaw = 
 
     def _init_tracking_config(self):
-        
-        
-        
+        # 寻找根节点的索引
+        if "pelvis_link" in self.config.robot.motion:
+            self.pelvis_id = self.simulator._body_list.index(self.config.robot.motion.pelvis_link)
+        # 寻找脚的索引
+        self.left_ankle_roll_id = self.simulator._body_list.index(self.config.robot.left_foot_name)
+        self.right_ankle_roll_id = self.simulator._body_list.index(self.config.robot.right_foot_name)
+
         if "motion_tracking_link" in self.config.robot.motion:
             self.motion_tracking_id = [self.simulator._body_list.index(link) for link in self.config.robot.motion.motion_tracking_link]
         if "lower_body_link" in self.config.robot.motion:
@@ -398,16 +402,19 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         upper_body_diff = self.dif_global_body_pos[:, self.upper_body_id, :]
         lower_body_diff = self.dif_global_body_pos[:, self.lower_body_id, :]
         vr_3point_diff = self.dif_global_body_pos[:, self.motion_tracking_id, :]
+        root_diff = self.dif_global_body_pos[:, self.pelvis_id, :]
         joint_pos_diff = self.dif_joint_angles
 
         upper_body_diff_norm = upper_body_diff.norm(dim=-1).mean()
         lower_body_diff_norm = lower_body_diff.norm(dim=-1).mean()
         vr_3point_diff_norm = vr_3point_diff.norm(dim=-1).mean()
+        root_diff_norm = root_diff.norm(dim=-1).mean()
         joint_pos_diff_norm = joint_pos_diff.norm(dim=-1).mean()
 
         self.log_dict["upper_body_diff_norm"] = upper_body_diff_norm
         self.log_dict["lower_body_diff_norm"] = lower_body_diff_norm
         self.log_dict["vr_3point_diff_norm"] = vr_3point_diff_norm
+        self.log_dict["root_diff_norm"] = root_diff_norm
         self.log_dict["joint_pos_diff_norm"] = joint_pos_diff_norm
         
         if 'enable' in self.config.soft_dynamic_correction and self.config.soft_dynamic_correction.enable:
@@ -657,12 +664,14 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         # ang_vel_reward = self._reward_teleop_body_ang_velocity_extend()
 
 
+        # 改动：wrist的dof_pos和dof_vel并不算在奖励
+        keep_indices = [i for i in range(23) if i not in (17, 22)]
 
-        
         ## diff compute - kinematic joint position
-        self.dif_joint_angles = ref_joint_pos - self.simulator.dof_pos
+        self.dif_joint_angles = ref_joint_pos[:, keep_indices] - self.simulator.dof_pos[:, keep_indices]
         ## diff compute - kinematic joint velocity
-        self.dif_joint_velocities = ref_joint_vel - self.simulator.dof_vel
+        self.dif_joint_velocities = ref_joint_vel[:, keep_indices] - self.simulator.dof_vel[:, keep_indices]
+
 
         # print(self.dif_joint_angles.max(),self.dif_global_body_pos.norm(dim=-1).max())
 
@@ -1206,6 +1215,14 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         
         self._update_adaptive_sigma(vr_3point_dist, 'teleop_vr_3point_pos')
         return r_vr_3point
+    # 根节点追踪
+    def _reward_teleop_root_position(self):
+        root_diff = self.dif_global_body_pos[:, self.pelvis_id, :]
+        root_dist = (root_diff**2).mean(dim=-1)
+        r_root = torch.exp(-root_dist / self.config.rewards.reward_tracking_sigma.teleop_root_pos)
+
+        self._update_adaptive_sigma(root_dist, 'teleop_root_pos')
+        return r_root
 
     def _reward_teleop_body_position_feet(self):
 
@@ -1301,7 +1318,16 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         else:
             pass
     
+    ## 改动，盆骨与脚踝y上距离的惩罚
+    # 希望他们在y的方向的水平距离不超过0.1
+    def _reward_penalty_pelvis_ankle_distance(self):   
+        pelvis_pos = self._rigid_body_pos_extend[:, self.pelvis_id, :]
+        left_ankle_pos = self._rigid_body_pos_extend[:, self.left_ankle_roll_id, :]
+        right_ankle_pos = self._rigid_body_pos_extend[:, self.right_ankle_roll_id, :]
+        left_distance_y = torch.abs(pelvis_pos - left_ankle_pos)[:, 1] - 0.1
+        right_distance_y = torch.abs(pelvis_pos - right_ankle_pos)[:, 1] - 0.1
 
+        return left_distance_y + right_distance_y
 
     ## exbody2 rewards, found in envs.locomotion
     def _reward_feet_air_time(self):

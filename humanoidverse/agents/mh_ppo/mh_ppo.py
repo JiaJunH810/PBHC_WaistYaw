@@ -216,6 +216,10 @@ class MHPPO(BaseAlgo):
         num_learning_iterations = self.num_learning_iterations
 
         tot_iter = self.current_learning_iteration + num_learning_iterations
+
+        record_max_Mean_reward = [-100.0, 0]
+        record_max_Mean_episode_length = [0., 0]
+        record_combine_reward_episode = [-100.0, 0]
         
         # do not use track, because it will confict with motion loading bar
         # for it in track(range(self.current_learning_iteration, tot_iter), description="Learning Iterations"):
@@ -245,6 +249,27 @@ class MHPPO(BaseAlgo):
                 self.current_learning_iteration = it
                 self.save(os.path.join(self.log_dir, 'model_{}.pt'.format(it)))
             self.ep_infos.clear()
+
+            if record_max_Mean_reward[0] < statistics.mean(log_dict['rewbuffer']):
+                record_max_Mean_reward[0] = statistics.mean(log_dict['rewbuffer'])
+                record_max_Mean_reward[1] = it
+                self.save(os.path.join(self.log_dir, 'best_reward.pt'))
+
+            if record_max_Mean_episode_length[0] < statistics.mean(log_dict['lenbuffer']):
+                record_max_Mean_episode_length[0] = statistics.mean(log_dict['lenbuffer'])
+                record_max_Mean_episode_length[1] = it
+                self.save(os.path.join(self.log_dir, 'best_episode.pt'))
+            
+            if record_combine_reward_episode[0] < statistics.mean(log_dict['lenbuffer']) / 10. + statistics.mean(log_dict['rewbuffer']):
+                record_combine_reward_episode[0] = statistics.mean(log_dict['lenbuffer']) / 10. + statistics.mean(log_dict['rewbuffer'])
+                record_combine_reward_episode[1] = it
+                self.save(os.path.join(self.log_dir, 'combine_reward_episode.pt'))
+            
+            if it % self.logging_interval == 0:
+                print("")
+                print("-" * 20, " ", f"Max_Mean_Reward_{record_max_Mean_reward[1]}: {record_max_Mean_reward[0]}", " ","-" * 20)
+                print("-" * 20, " ", f"Max_Mean_Episode_{record_max_Mean_episode_length[1]}: {record_max_Mean_episode_length[0]}", " ","-" * 20)
+                print("-" * 20, " ", f"Combine_Episode_Reward_{record_combine_reward_episode[1]}: {record_combine_reward_episode[0]}", " ","-" * 20)
         
         
         self.save(os.path.join(self.log_dir, 'model_{}.pt'.format(self.current_learning_iteration)))

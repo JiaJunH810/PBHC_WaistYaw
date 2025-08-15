@@ -118,7 +118,7 @@ class LeggedRobotBase(BaseTask):
             self.push_interval_s = torch.randint(self.config.domain_rand.push_interval_s[0], self.config.domain_rand.push_interval_s[1], (self.num_envs,), device=self.device)
 
             # 判断推机器人是否进行课程学习
-            if self.config.domain_rand.push_robot_curriculum:
+            if 'push_robot_curriculum' in self.config.domain_rand and self.config.domain_rand.push_robot_curriculum:
                 self.push_robot_vel_xy = self.config.domain_rand.max_push_vel_xy
 
     def _init_counters(self):
@@ -574,7 +574,7 @@ class LeggedRobotBase(BaseTask):
             mask = mask.unsqueeze(-1).expand_as(self.noise_process.x)
             self.noise_process.reset_part(mask)
         # 如果推机器人使用了课程学习,则根据平均运行长度来更新degree
-        if self.config.domain_rand.push_robots and self.config.domain_rand.push_robot_curriculum:
+        if self.config.domain_rand.push_robots and 'push_robot_curriculum' in self.config.domain_rand and self.config.domain_rand.push_robot_curriculum:
             self._update_push_robot_curriculum()
     
     def _episodic_domain_randomization(self, env_ids):
@@ -790,7 +790,7 @@ class LeggedRobotBase(BaseTask):
         
         if self.config.domain_rand.randomize_torque_rfi:
             torques = torques + (torch.rand_like(torques)*2.-1.) * self.config.domain_rand.rfi_lim * self._rfi_lim_scale * self.torque_limits
-            
+
         if 'parallel_serial_tau' in self.config.domain_rand and self.config.domain_rand.parallel_serial_tau.enable:
             # torques = torques * self._tau_scale
             
@@ -802,7 +802,7 @@ class LeggedRobotBase(BaseTask):
         
         if self.config.domain_rand.use_rao:
             torques = torques + self._rao_scale * self.torque_limits
-        
+
         if self.config.robot.control.clip_torques:
             return torch.clip(torques, -self.torque_limits, self.torque_limits)
         

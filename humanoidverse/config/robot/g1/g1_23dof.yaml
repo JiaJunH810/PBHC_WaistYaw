@@ -85,7 +85,7 @@ robot:
 
 
   terminate_after_contacts_on : ["pelvis", "shoulder", "hip"]
-  penalize_contacts_on: ["pelvis", "shoulder", "hip"]
+  penalize_contacts_on: ["pelvis", "shoulder", "hip", "elbow", "wrist"]
   init_state:
     pos: [0.0, 0.0, 0.8] # x,y,z [m]
     rot: [0.0, 0.0, 0.0, 1.0] # x,y,z,w [quat]
@@ -285,8 +285,6 @@ robot:
       - "left_wrist_roll_rubber_hand"
       - "right_wrist_roll_rubber_hand"
       - "head_link"
-      - "left_wrist_roll_rubber_hand"
-      - "right_wrist_roll_rubber_hand"
 
 
     pelvis_link: "pelvis"
