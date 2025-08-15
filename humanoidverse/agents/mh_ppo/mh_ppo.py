@@ -262,9 +262,10 @@ class MHPPO(BaseAlgo):
                 self.save(os.path.join(self.log_dir, 'combine_reward_episode.pt'))
             
             if it % self.logging_interval == 0:
+                print("")
                 print("-" * 20, " ", f"Max_Mean_Reward_{record_max_Mean_reward[1]}: {record_max_Mean_reward[0]}", " ","-" * 20)
                 print("-" * 20, " ", f"Max_Mean_Episode_{record_max_Mean_episode_length[1]}: {record_max_Mean_episode_length[0]}", " ","-" * 20)
-                print("-" * 20, " ", f"Combine_Episode_Reward_{record_max_Mean_episode_length[1]}: {record_max_Mean_episode_length[0]}", " ","-" * 20)
+                print("-" * 20, " ", f"Combine_Episode_Reward_{record_combine_reward_episode[1]}: {record_combine_reward_episode[0]}", " ","-" * 20)
 
             if it % self.save_interval == 0:
                 self.current_learning_iteration = it
