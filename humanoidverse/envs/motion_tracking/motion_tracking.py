@@ -338,7 +338,9 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         # print(f"DEBUG: motion far = {torch.norm(self.dif_global_body_pos, dim=-1).max()}\t|  threshold={self.terminate_when_motion_far_threshold}")
         
         if self.config.termination.terminate_when_motion_far:
-            reset_buf_motion_far = torch.any(torch.norm(self.dif_global_body_pos, dim=-1) > self.terminate_when_motion_far_threshold, dim=-1)
+            dif_glXY_loZ_body_pos = self.dif_global_body_pos.clone()
+            dif_glXY_loZ_body_pos[:, :, 2] = self.dif_local_body_pos[:, :, 2]
+            reset_buf_motion_far = torch.any(torch.norm(dif_glXY_loZ_body_pos, dim=-1) > self.terminate_when_motion_far_threshold, dim=-1)
             self.reset_buf_terminate_by["motion_far"] = reset_buf_motion_far
             self.reset_buf |= reset_buf_motion_far
             # log current motion far threshold
