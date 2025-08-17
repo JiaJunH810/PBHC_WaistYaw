@@ -219,6 +219,11 @@ class MHPPO(BaseAlgo):
         
         # do not use track, because it will confict with motion loading bar
         # for it in track(range(self.current_learning_iteration, tot_iter), description="Learning Iterations"):
+        if "is_save_interval" in self.config:
+            self.is_save_interval = self.config.is_save_interval
+        else:
+            self.is_save_interval = True
+
         record_max_Mean_reward = [-100.0, 0]
         record_max_Mean_episode_length = [0., 0]
         record_combine_reward_episode = [-100.0, 0]
@@ -267,7 +272,7 @@ class MHPPO(BaseAlgo):
                 print("-" * 20, " ", f"Max_Mean_Episode_{record_max_Mean_episode_length[1]}: {record_max_Mean_episode_length[0]}", " ","-" * 20)
                 print("-" * 20, " ", f"Combine_Episode_Reward_{record_combine_reward_episode[1]}: {record_combine_reward_episode[0]}", " ","-" * 20)
 
-            if it % self.save_interval == 0:
+            if self.is_save_interval and it % self.save_interval == 0:
                 self.current_learning_iteration = it
                 self.save(os.path.join(self.log_dir, 'model_{}.pt'.format(it)))
             self.ep_infos.clear()
