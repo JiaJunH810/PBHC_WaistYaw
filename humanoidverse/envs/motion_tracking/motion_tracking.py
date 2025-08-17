@@ -1324,8 +1324,8 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         pelvis_pos = self._rigid_body_pos_extend[:, self.pelvis_id, :]
         left_ankle_pos = self._rigid_body_pos_extend[:, self.left_ankle_roll_id, :]
         right_ankle_pos = self._rigid_body_pos_extend[:, self.right_ankle_roll_id, :]
-        left_distance_y = torch.abs(pelvis_pos - left_ankle_pos)[:, 1] - 0.1
-        right_distance_y = torch.abs(pelvis_pos - right_ankle_pos)[:, 1] - 0.1
+        left_distance_y = torch.abs(torch.abs(pelvis_pos - left_ankle_pos)[:, 1] - 0.1)
+        right_distance_y = torch.abs(torch.abs(pelvis_pos - right_ankle_pos)[:, 1] - 0.1)
 
         return left_distance_y + right_distance_y
 

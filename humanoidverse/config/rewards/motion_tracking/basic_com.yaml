@@ -30,6 +30,7 @@ rewards:
       penalty_action_rate: -0.3  # Decreased from -0.5 to -0.3
       feet_air_time: 1.2  # Increased from 1.0 to 1.2
       penalty_feet_contact_forces: -0.01
+      penalty_orientation: -1.0
       penalty_stumble: -2.0
       penalty_slippage: -3.0
       penalty_feet_ori: -1.0
@@ -123,5 +124,5 @@ rewards:
     "penalty_feet_ori",
     "penalty_slippage",
     "collision",
-    "penalty_com_offset"
+    "penalty_com_offset",
     ]
