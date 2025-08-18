@@ -38,7 +38,6 @@ rewards:
       collision: -30.0
       penalty_com_offset: -5.0
       # penalty_feet_contact_ground: -5.0
-      # teleop_body_pos_glXY_loZ_extend: 1.0
       
 
   teleop_body_pos_lowerbody_weight : 0.5
@@ -61,8 +60,6 @@ rewards:
     teleop_body_ang_vel: 15.0
     teleop_joint_pos: 0.3
     teleop_joint_vel: 30.0
-    teleop_upper_body_pos_glXY_loZ: 0.015
-    teleop_lower_body_pos_glXY_loZ: 0.015
 
   adaptive_tracking_sigma:
     enable: True
@@ -98,9 +95,9 @@ rewards:
       soft_dof_pos_curriculum_level_up_threshold: 60  # Increased from 42 to 45
 
       soft_dof_vel_curriculum: True
-      soft_dof_vel_initial_limit: 1.03
-      soft_dof_vel_max_limit: 1.03
-      soft_dof_vel_min_limit: 1.03
+      soft_dof_vel_initial_limit: 1.05
+      soft_dof_vel_max_limit: 1.05
+      soft_dof_vel_min_limit: 1.05
       soft_dof_vel_curriculum_degree: 0.00000025
       soft_dof_vel_curriculum_level_down_threshold: 50  # Decreased from 40 to 35
       soft_dof_vel_curriculum_level_up_threshold: 60  # Increased from 42 to 45

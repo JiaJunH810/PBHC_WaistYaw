@@ -338,9 +338,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         # print(f"DEBUG: motion far = {torch.norm(self.dif_global_body_pos, dim=-1).max()}\t|  threshold={self.terminate_when_motion_far_threshold}")
         
         if self.config.termination.terminate_when_motion_far:
-            dif_glXY_loZ_body_pos = self.dif_global_body_pos.clone()
-            dif_glXY_loZ_body_pos[:, :, 2] = self.dif_local_body_pos[:, :, 2]
-            reset_buf_motion_far = torch.any(torch.norm(dif_glXY_loZ_body_pos, dim=-1) > self.terminate_when_motion_far_threshold, dim=-1)
+            reset_buf_motion_far = torch.any(torch.norm(self.dif_global_body_pos, dim=-1) > self.terminate_when_motion_far_threshold, dim=-1)
             self.reset_buf_terminate_by["motion_far"] = reset_buf_motion_far
             self.reset_buf |= reset_buf_motion_far
             # log current motion far threshold
@@ -662,16 +660,6 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         
         self.dif_global_body_ang_vel = ref_body_ang_vel_extend - self._rigid_body_ang_vel_extend
         # ang_vel_reward = self._reward_teleop_body_ang_velocity_extend()
-
-        # 计算连杆局部坐标位置的差值
-        pelvis_index = self.simulator._body_list.index('pelvis')
-        ref_body_local_pos_extend = ref_body_pos_extend.clone()
-        _rigid_body_local_pos_extend = self._rigid_body_pos_extend.clone()
-
-        ref_body_local_pos_extend -= ref_body_local_pos_extend[:, pelvis_index].unsqueeze(1)    # 计算参考点的局部坐标系
-        _rigid_body_local_pos_extend -= _rigid_body_local_pos_extend[:, pelvis_index].unsqueeze(1)  # 计算机器人的局部坐标系
-
-        self.dif_local_body_pos = ref_body_local_pos_extend - _rigid_body_local_pos_extend  # 计算局部坐标系的差值
 
         
         ## diff compute - kinematic joint position
@@ -1220,27 +1208,6 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
 
         return r_body_pos
     
-    # XY轴跟踪连杆全局坐标位置, Z轴跟踪局部坐标位置
-    def _reward_teleop_body_pos_glXY_loZ_extend(self):
-        # 获取连杆XY轴上下半身全局坐标位置的差
-        upper_body_global_xy_diff = self.dif_global_body_pos[:, self.upper_body_id, :2]
-        lower_body_global_xy_diff = self.dif_global_body_pos[:, self.lower_body_id, :2]
-
-        # 获取连杆Z轴上下半身局部坐标位置的差
-        upper_body_local_z_diff = self.dif_local_body_pos[:, self.upper_body_id, 2]
-        lower_body_local_z_diff = self.dif_local_body_pos[:, self.lower_body_id, 2]
-
-        diff_body_pos_dist_upper = (upper_body_global_xy_diff**2).mean(dim=-1).mean(dim=-1) + (upper_body_local_z_diff**2).mean(dim=-1)
-        diff_body_pos_dist_lower = (lower_body_global_xy_diff**2).mean(dim=-1).mean(dim=-1) + (lower_body_local_z_diff**2).mean(dim=-1)
-
-        r_body_pos_upper = torch.exp(-diff_body_pos_dist_upper / self.config.rewards.reward_tracking_sigma.teleop_upper_body_pos_glXY_loZ)
-        r_body_pos_lower = torch.exp(-diff_body_pos_dist_lower / self.config.rewards.reward_tracking_sigma.teleop_lower_body_pos_glXY_loZ)
-        r_body_pos = r_body_pos_upper * self.config.rewards.teleop_body_pos_upperbody_weight + r_body_pos_lower * self.config.rewards.teleop_body_pos_lowerbody_weight
-
-        self._update_adaptive_sigma(diff_body_pos_dist_upper, "teleop_upper_body_pos_glXY_loZ")
-        self._update_adaptive_sigma(diff_body_pos_dist_lower, "teleop_lower_body_pos_glXY_loZ")
-        
-        return r_body_pos
 
     def _reward_teleop_vr_3point(self):
         vr_3point_diff = self.dif_global_body_pos[:, self.motion_tracking_id, :]
