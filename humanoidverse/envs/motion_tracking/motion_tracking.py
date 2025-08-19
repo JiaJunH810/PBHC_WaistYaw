@@ -551,14 +551,14 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
             dof_pos_noise = self.config.init_noise_scale.dof_pos * self.config.noise_to_initial_level
 
             default_joint_angles = self.config.robot.init_state.default_joint_angles
-            dof_pos = torch.zeros(self.simulator.num_dof, dtype=torch.float)
-            dof_vel = torch.zeros(self.simulator.num_dof, dtype=torch.float)
-            for name, joint_angle in enumerate(default_joint_angles):
-                index = self.config.robot.init_state.default_joint_angles.index(name)
-                dof_pos[index] = joint_angle
+            dof_pos = torch.zeros(self.simulator.num_dof, dtype=torch.float, device=self.device)
+            dof_vel = torch.zeros(self.simulator.num_dof, dtype=torch.float, device=self.device)
+            for name in list(default_joint_angles.keys()):
+                index = self.simulator.dof_names.index(name)
+                dof_pos[index] = default_joint_angles[name]
             dof_pos_repeat = dof_pos.repeat(len(env_ids), 1)
             dof_vel_repeat = dof_vel.repeat(len(env_ids), 1)
-            self.simulator.dof_pos[env_ids] = dof_pos_repeat + torch.randn_like(dof_pos) * dof_pos_noise
+            self.simulator.dof_pos[env_ids] = dof_pos_repeat + torch.randn_like(dof_pos_repeat) * dof_pos_noise
             self.simulator.dof_vel[env_ids] = dof_vel_repeat
         else:
             raise ValueError("Please choose one type between origin and probe")
