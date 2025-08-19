@@ -1009,6 +1009,10 @@ class LeggedRobotBase(BaseTask):
         else:
             lower_soft_limit = self.simulator.dof_pos_limits[:, 0]
             upper_soft_limit = self.simulator.dof_pos_limits[:, 1]
+        # 改动 start 将ankle_roll的limit缩小五倍
+        lower_soft_limit[[5, 11]] = lower_soft_limit[[5, 11]] / 5
+        upper_soft_limit[[5, 11]] = upper_soft_limit[[5, 11]] / 5
+        # 改动 end
         out_of_limits = -(self.simulator.dof_pos - lower_soft_limit).clip(max=0.) # lower limit
         out_of_limits += (self.simulator.dof_pos - upper_soft_limit).clip(min=0.)
         return torch.sum(out_of_limits, dim=1)
@@ -1116,7 +1120,7 @@ class LeggedRobotBase(BaseTask):
         max_vel = self.config.domain_rand.max_push_vel_xy
 
         # 应用推机器人的课程学习
-        if self.config.domain_rand.push_robot_curriculum:
+        if 'push_robot_curriculum' in self.config.domain_rand and self.config.domain_rand.push_robot_curriculum:
             max_vel = self.push_robot_vel_xy
 
         
@@ -1125,7 +1129,7 @@ class LeggedRobotBase(BaseTask):
 
         self.push_robot_vel_buf[env_ids] = torch_rand_float(-max_vel, max_vel, (len(env_ids), 3), device=str(self.device))  # lin vel x/y
         # 增加z轴负方向的速度
-        self.push_robot_vel_buf[env_ids][2] = -abs(self.push_robot_vel_buf[env_ids][2])
+        self.push_robot_vel_buf[env_ids, 2] = -abs(self.push_robot_vel_buf[env_ids, 2])
         self.record_push_robot_vel_buf[env_ids] = self.push_robot_vel_buf[env_ids].clone()
         
         if '_push_fixed' in self.config.domain_rand and self.config.domain_rand._push_fixed:

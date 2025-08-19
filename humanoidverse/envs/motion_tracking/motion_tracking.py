@@ -1215,7 +1215,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         
         self._update_adaptive_sigma(vr_3point_dist, 'teleop_vr_3point_pos')
         return r_vr_3point
-    # 根节点追踪
+    # 根节点位置追踪
     def _reward_teleop_root_position(self):
         root_diff = self.dif_global_body_pos[:, self.pelvis_id, :]
         root_dist = (root_diff**2).mean(dim=-1)
@@ -1223,7 +1223,21 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
 
         self._update_adaptive_sigma(root_dist, 'teleop_root_pos')
         return r_root
+    # 根节点速度追踪，但是只奖励x，y的分量，惩罚z的分量
+    def _reward_teleop_root_velocity_xy(self):
+        root_velocity_diff = self.dif_global_body_vel[:, self.pelvis_id, :]
+        root_velocity_dist = (root_velocity_diff**2)[:, :2].mean(dim=-1).mean(dim=-1)
+        r_root_vel = torch.exp(-root_velocity_dist / self.config.rewards.reward_tracking_sigma.teleop_root_vel)
 
+        self._update_adaptive_sigma(root_velocity_dist, 'teleop_root_vel')
+        return r_root_vel
+    
+    def _reward_penalty_teleop_root_velocity_z(self):
+        root_velocity_diff = self.dif_global_body_vel[:, self.pelvis_id, :]
+        root_velocity_dist = (root_velocity_diff**2)[:, 2].mean(dim=-1)
+        
+        return root_velocity_dist
+    
     def _reward_teleop_body_position_feet(self):
 
         feet_diff = self.dif_global_body_pos[:, self.feet_indices, :]
@@ -1251,6 +1265,24 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         
         self._update_adaptive_sigma(diff_body_vel_dist, 'teleop_body_vel')
         return r_body_vel
+
+    # 上面那个是全局坐标位置的速度跟踪，我们这里添加两个函数
+    # 一个是全局坐标位置的速度的x和y分量方向的跟踪
+    def _reward_teleop_body_velocity_extend_xy(self):
+        velocity_diff = self.dif_global_body_vel    
+        diff_body_vel_dist = (velocity_diff**2)[:, :, :2].mean(dim=-1).mean(dim=-1)
+        # print(f"{diff_body_vel_dist=}")
+        r_body_vel = torch.exp(-diff_body_vel_dist / self.config.rewards.reward_tracking_sigma.teleop_body_vel)
+        
+        self._update_adaptive_sigma(diff_body_vel_dist, 'teleop_body_vel')
+        return r_body_vel
+    
+    # 一个是对全局坐标位置的速度的z分量方向的惩罚
+    def _reward_penalty_teleop_body_velocity_extend_z(self):
+        velocity_diff = self.dif_global_body_vel    
+        diff_body_vel_dist = (velocity_diff**2)[:, :, 2].mean(dim=-1)
+        
+        return diff_body_vel_dist
     
     def _reward_teleop_radial_body_velocity_extend(self):
         velocity_diff = self.dif_global_body_vel.reshape(self.num_envs, -1)

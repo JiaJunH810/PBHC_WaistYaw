@@ -253,10 +253,12 @@ class MHPPO(BaseAlgo):
             if record_max_Mean_reward[0] < statistics.mean(log_dict['rewbuffer']):
                 record_max_Mean_reward[0] = statistics.mean(log_dict['rewbuffer'])
                 record_max_Mean_reward[1] = it
+                max_Mean_Reward_to_episode_length = statistics.mean(log_dict['lenbuffer'])
                 self.save(os.path.join(self.log_dir, 'best_reward.pt'))
 
             if record_max_Mean_episode_length[0] < statistics.mean(log_dict['lenbuffer']):
                 record_max_Mean_episode_length[0] = statistics.mean(log_dict['lenbuffer'])
+                max_Mean_episode_length_to_reward = statistics.mean(log_dict['rewbuffer'])
                 record_max_Mean_episode_length[1] = it
                 self.save(os.path.join(self.log_dir, 'best_episode.pt'))
             
@@ -267,8 +269,8 @@ class MHPPO(BaseAlgo):
             
             if it % self.logging_interval == 0:
                 print("")
-                print("-" * 20, " ", f"Max_Mean_Reward_{record_max_Mean_reward[1]}: {record_max_Mean_reward[0]}", " ","-" * 20)
-                print("-" * 20, " ", f"Max_Mean_Episode_{record_max_Mean_episode_length[1]}: {record_max_Mean_episode_length[0]}", " ","-" * 20)
+                print("-" * 10, " ", f"Max_Mean_Reward_{record_max_Mean_reward[1]}: {record_max_Mean_reward[0]}, max_Mean_Reward_to_episode_length: {max_Mean_Reward_to_episode_length}", " ","-" * 10)
+                print("-" * 10, " ", f"Max_Mean_Episode_{record_max_Mean_episode_length[1]}: {record_max_Mean_episode_length[0]}, max_Mean_episode_length_to_reward: {max_Mean_episode_length_to_reward}", " ","-" * 10)
                 print("-" * 20, " ", f"Combine_Episode_Reward_{record_combine_reward_episode[1]}: {record_combine_reward_episode[0]}", " ","-" * 20)
         
         

@@ -33,7 +33,7 @@ rewards:
       penalty_orientation: -1.0
       penalty_stumble: -2.0
       penalty_slippage: -3.0
-      penalty_feet_ori: -1.0
+      # penalty_feet_ori: -1.0
       feet_heading_alignment_contact: -0.1
 
       limits_dof_pos: -20.0

@@ -5,7 +5,7 @@ from scipy.spatial.transform import Slerp
 import joblib
 import argparse
 from pathlib import Path
-DOF_AXIS_FILE = "./description/robots/g1/dof_axis.npy"
+DOF_AXIS_FILE = "./description/robots/g1/dof_23dof_dof_axis.npy"
 
 def lower_dof_interpolation(start_dof,end_dof,nframe):
     mid_frame = nframe // 2
