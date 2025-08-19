@@ -538,15 +538,30 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         # motion_times = (self.episode_length_buf) * self.dt + self.motion_start_times # next frames so +1
         # offset = self.env_origins
         # motion_res = self._motion_lib.get_motion_state(self.motion_ids, motion_times, offset=offset)
-        motion_res = self.kick_motion_res()
+        if "reset_dofs_type" in self.config and self.config.reset_dofs_type == 'origin' or (self.config.reset_dofs_type == 'prob' and np.random.rand() > 0.3):
+            motion_res = self.kick_motion_res()
 
-        dof_pos_noise = self.config.init_noise_scale.dof_pos * self.config.noise_to_initial_level
-        dof_vel_noise = self.config.init_noise_scale.dof_vel * self.config.noise_to_initial_level
-        dof_pos = motion_res['dof_pos'][env_ids]
-        dof_vel = motion_res['dof_vel'][env_ids]
-        self.simulator.dof_pos[env_ids] = dof_pos + torch.randn_like(dof_pos) * dof_pos_noise
-        self.simulator.dof_vel[env_ids] = dof_vel + torch.randn_like(dof_vel) * dof_vel_noise
+            dof_pos_noise = self.config.init_noise_scale.dof_pos * self.config.noise_to_initial_level
+            dof_vel_noise = self.config.init_noise_scale.dof_vel * self.config.noise_to_initial_level
+            dof_pos = motion_res['dof_pos'][env_ids]
+            dof_vel = motion_res['dof_vel'][env_ids]
+            self.simulator.dof_pos[env_ids] = dof_pos + torch.randn_like(dof_pos) * dof_pos_noise
+            self.simulator.dof_vel[env_ids] = dof_vel + torch.randn_like(dof_vel) * dof_vel_noise
+        elif "reset_dofs_type" in self.config and self.config.reset_dofs_type == 'prob':
+            dof_pos_noise = self.config.init_noise_scale.dof_pos * self.config.noise_to_initial_level
 
+            default_joint_angles = self.config.robot.init_state.default_joint_angles
+            dof_pos = torch.zeros(self.simulator.num_dof, dtype=torch.float)
+            dof_vel = torch.zeros(self.simulator.num_dof, dtype=torch.float)
+            for name, joint_angle in enumerate(default_joint_angles):
+                index = self.config.robot.init_state.default_joint_angles.index(name)
+                dof_pos[index] = joint_angle
+            dof_pos_repeat = dof_pos.repeat(len(env_ids), 1)
+            dof_vel_repeat = dof_vel.repeat(len(env_ids), 1)
+            self.simulator.dof_pos[env_ids] = dof_pos_repeat + torch.randn_like(dof_pos) * dof_pos_noise
+            self.simulator.dof_vel[env_ids] = dof_vel_repeat
+        else:
+            raise ValueError("Please choose one type between origin and probe")
 
     _kick_motion_res_counter = -1
     _kick_motion_res_buffer: Optional[Dict[str, torch.Tensor]] = None
