@@ -171,13 +171,18 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
     def _init_motion_lib(self):
         self.config.robot.motion.step_dt = self.dt
         
-        assert self.config.robot.motion.motion_lib_type in ['origin', 'WJX'], "motion_lib_type must be either 'origin' or 'WJX'"
+        assert self.config.robot.motion.motion_lib_type in ['origin', 'WJX', 'JJH'], "motion_lib_type must be either 'origin' or 'WJX'"
         if self.config.robot.motion.motion_lib_type == 'origin':
             from humanoidverse.utils.motion_lib.motion_lib_robot import MotionLibRobot
             self._motion_lib = MotionLibRobot(self.config.robot.motion, num_envs=self.num_envs, device=self.device)
         elif self.config.robot.motion.motion_lib_type == 'WJX':
             from humanoidverse.utils.motion_lib.motion_lib_robot_WJX import MotionLibRobotWJX
             self._motion_lib = MotionLibRobotWJX(self.config.robot.motion, num_envs=self.num_envs, device=self.device)
+        elif self.config.robot.motion.motion_lib_type == "JJH":
+            from humanoidverse.utils.motion_lib.motion_lib_robot_JJH import MotionLibRobotJJH
+            self._motion_lib = MotionLibRobotJJH(self.config.robot.motion, num_envs=self.num_envs, device=self.device)
+            import sys
+            sys.exit()
         if self.is_evaluating:
             self._motion_lib.load_motions(random_sample=False)
         else:

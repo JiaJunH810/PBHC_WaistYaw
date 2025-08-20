@@ -198,7 +198,7 @@ robot:
     fix_base_link: False # TEST: fix base link to world
 
   motion:
-    motion_lib_type: 'WJX'
+    motion_lib_type: 'JJH'
     motion_file : ???
     asset:
       assetRoot: "description/robots/g1/"
