@@ -1223,19 +1223,19 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
 
         self._update_adaptive_sigma(root_dist, 'teleop_root_pos')
         return r_root
-    # 根节点速度追踪，但是只奖励x，y的分量，惩罚z的分量
-    def _reward_teleop_root_velocity_xy(self):
-        root_velocity_diff = self.dif_global_body_vel[:, self.pelvis_id, :]
-        root_velocity_dist = (root_velocity_diff**2)[:, :2].mean(dim=-1).mean(dim=-1)
-        r_root_vel = torch.exp(-root_velocity_dist / self.config.rewards.reward_tracking_sigma.teleop_root_vel)
 
-        self._update_adaptive_sigma(root_velocity_dist, 'teleop_root_vel')
-        return r_root_vel
-    
+    # 添加两个惩罚函数，分别是根节点z轴分量的位置和速度的惩罚
+    # 位置要求和default的z轴位置一致，而不是和每帧的pkl一致，速度要求为0
+    def _reward_penalty_teleop_root_position_z(self):
+        root_position_diff = self._rigid_body_pos_extend[:, self.pelvis_id, 2] - self.config.robot.init_state.pos[2]
+        root_position_dist = root_position_diff**2
+
+        return root_position_dist
+
     def _reward_penalty_teleop_root_velocity_z(self):
-        root_velocity_diff = self.dif_global_body_vel[:, self.pelvis_id, :]
-        root_velocity_dist = (root_velocity_diff**2)[:, 2].mean(dim=-1)
-        
+        root_velocity_diff = self.dif_global_body_vel[:, self.pelvis_id, 2]
+        root_velocity_dist = root_velocity_diff**2
+
         return root_velocity_dist
     
     def _reward_teleop_body_position_feet(self):
