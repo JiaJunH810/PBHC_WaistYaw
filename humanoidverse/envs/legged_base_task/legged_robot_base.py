@@ -1020,6 +1020,8 @@ class LeggedRobotBase(BaseTask):
         else:
             lower_soft_limit = self.simulator.dof_pos_limits[:, 0]
             upper_soft_limit = self.simulator.dof_pos_limits[:, 1]
+        lower_soft_limit[[5, 11]] = lower_soft_limit[[5, 11]].clone() / 5
+        upper_soft_limit[[5, 11]] = upper_soft_limit[[5, 11]].clone() / 5
         out_of_limits = -(self.simulator.dof_pos - lower_soft_limit).clip(max=0.) # lower limit
         out_of_limits += (self.simulator.dof_pos - upper_soft_limit).clip(min=0.)
         return torch.sum(out_of_limits, dim=1)

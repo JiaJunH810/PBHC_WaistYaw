@@ -538,29 +538,15 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         # motion_times = (self.episode_length_buf) * self.dt + self.motion_start_times # next frames so +1
         # offset = self.env_origins
         # motion_res = self._motion_lib.get_motion_state(self.motion_ids, motion_times, offset=offset)
-        if "reset_dofs_type" in self.config and self.config.reset_dofs_type == 'origin' or (self.config.reset_dofs_type == 'prob' and np.random.rand() > 0.7):
-            motion_res = self.kick_motion_res()
+        motion_res = self.kick_motion_res()
 
-            dof_pos_noise = self.config.init_noise_scale.dof_pos * self.config.noise_to_initial_level
-            dof_vel_noise = self.config.init_noise_scale.dof_vel * self.config.noise_to_initial_level
-            dof_pos = motion_res['dof_pos'][env_ids]
-            dof_vel = motion_res['dof_vel'][env_ids]
-            self.simulator.dof_pos[env_ids] = dof_pos + torch.randn_like(dof_pos) * dof_pos_noise
-            self.simulator.dof_vel[env_ids] = dof_vel + torch.randn_like(dof_vel) * dof_vel_noise
-        elif "reset_dofs_type" in self.config and self.config.reset_dofs_type == 'prob':
-            def torch_rand_float(lower, upper, shape, device):
-                return (upper - lower) * torch.rand(*shape, device=device) + lower
-            default_joint_angles = self.config.robot.init_state.default_joint_angles
-            dof_pos = torch.zeros(self.simulator.num_dof, dtype=torch.float, device=self.device)
-            dof_vel = torch.zeros(self.simulator.num_dof, dtype=torch.float, device=self.device)
-            for name in list(default_joint_angles.keys()):
-                index = self.simulator.dof_names.index(name)
-                dof_pos[index] = default_joint_angles[name]
-            dof_pos_buf = dof_pos * torch_rand_float(0.5, 1.5, (len(env_ids), self.num_dof), device=str(self.device))
-            self.simulator.dof_pos[env_ids] = dof_pos_buf
-            self.simulator.dof_vel[env_ids] = 0.
-        else:
-            raise ValueError("Please choose one type between origin and probe")
+        dof_pos_noise = self.config.init_noise_scale.dof_pos * self.config.noise_to_initial_level
+        dof_vel_noise = self.config.init_noise_scale.dof_vel * self.config.noise_to_initial_level
+        dof_pos = motion_res['dof_pos'][env_ids]
+        dof_vel = motion_res['dof_vel'][env_ids]
+        self.simulator.dof_pos[env_ids] = dof_pos + torch.randn_like(dof_pos) * dof_pos_noise
+        self.simulator.dof_vel[env_ids] = dof_vel + torch.randn_like(dof_vel) * dof_vel_noise
+
 
     _kick_motion_res_counter = -1
     _kick_motion_res_buffer: Optional[Dict[str, torch.Tensor]] = None

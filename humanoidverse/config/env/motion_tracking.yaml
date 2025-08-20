@@ -64,7 +64,6 @@ env:
       root_vel: 0.01
       root_ang_vel: 0.01
     
-    reset_dofs_type: 'prob'   # origin/prob
 
     use_teleop_control: False
     enforce_randomize_motion_start_eval: False
