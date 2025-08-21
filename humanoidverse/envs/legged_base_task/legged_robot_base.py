@@ -334,11 +334,7 @@ class LeggedRobotBase(BaseTask):
     # 获取观测网络时的运动序列
     def obtain_mimic_obs(self):
 
-        print("@" * 100)
-        print(self.tar_obs_steps)
-        print(self.motion_ids)
-        import sys
-        sys.exit()
+        
         pass
 
     def _setup_simulator_next_task(self):

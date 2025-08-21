@@ -107,6 +107,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         self.init_done = True
         self.debug_viz = True
 
+
         self._init_save_motion()
 
         if self.config.use_teleop_control:
@@ -181,13 +182,12 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         elif self.config.robot.motion.motion_lib_type == "JJH":
             from humanoidverse.utils.motion_lib.motion_lib_robot_JJH import MotionLibRobotJJH
             self._motion_lib = MotionLibRobotJJH(self.config.robot.motion, num_envs=self.num_envs, device=self.device)
-            import sys
-            sys.exit()
         if self.is_evaluating:
             self._motion_lib.load_motions(random_sample=False)
         else:
             self._motion_lib.load_motions(random_sample=True)
 
+        self.motion_ids = self._motion_lib._curr_motion_ids.to(self.device)
         ref_init_state = self.kick_motion_res() ; self._kick_motion_res_counter = -1
         self.ref_init_rpy = get_euler_xyz_in_tensor(ref_init_state['root_rot'][:1]) # [1,3]
         # breakpoint()
@@ -563,6 +563,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         
         motion_times = (self.episode_length_buf + 1) * self.dt + self.motion_start_times # next frames so +1
         offset = self.env_origins
+
         self._kick_motion_res_buffer = self._motion_lib.get_motion_state(self.motion_ids, motion_times, offset=offset)
         
         return self._kick_motion_res_buffer
