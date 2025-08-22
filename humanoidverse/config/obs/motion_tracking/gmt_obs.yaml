@@ -98,13 +98,13 @@ obs:
     dr_ctrl_delay: 0.0,
   }
 
-  obs_mimic: [
-    root_pos_y,
-    roll,
-    pitch,
-    root_vel,
-    root_ang_vel_y,
-    dof_pos,
+  future_mimic_buf: [
+    future_root_pos_y,
+    future_roll,
+    future_pitch,
+    future_root_vel,
+    future_root_ang_vel_y,
+    future_dof_pos,
   ]
 
 
@@ -132,11 +132,13 @@ obs:
     - dr_kd: ${robot.dof_obs_size}
     - dr_friction: 1
     - dr_ctrl_delay: 1
-    - root_pos_y: 1
-    - roll: 1
-    - pitch: 1
-    - root_vel: 3
-    - root_ang_vel_y: 1
+
+    - future_root_pos_y: 1
+    - future_roll: 1
+    - future_pitch: 1
+    - future_root_vel: 3
+    - future_root_ang_vel_y: 1
+    - future_dof_pos: ${robot.dof_obs_size}
 
   post_compute_config: {} # Will store values after preprocessing, don't put anything here
   motion_len: -1

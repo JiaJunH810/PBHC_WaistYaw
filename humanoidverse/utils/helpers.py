@@ -56,16 +56,16 @@ def determine_obs_dim(config) -> None:
     config.env.config.obs.obs_dims = each_dict_obs_dims
     logger.info(f"obs_dims: {each_dict_obs_dims}")
 
-    obs_mimic_dim_dict = None
-    obs_mimic_enabled = True if "tar_obs_mimic" in config.env.config.obs and config.env.config.obs.tar_obs_mimic.enabled else False
-    if obs_mimic_enabled:
-        obs_mimic_dim_dict = {}
-        obs_mimic_dim_dict['obs_mimic'] = 0
-        for key in config.env.config.obs.obs_mimic:
-            obs_mimic_dim_dict['obs_mimic'] += each_dict_obs_dims[key]
-        obs_mimic_dim_dict['obs_mimic'] *= config.env.config.obs.tar_obs_mimic.tar_obs_mimic_counter
+    future_mimic_dim_dict = None
+    future_mimic_enabled = True if "tar_obs_mimic" in config.env.config.obs and config.env.config.obs.tar_obs_mimic.enabled else False
+    if future_mimic_enabled:
+        future_mimic_dim_dict = {}
+        future_mimic_dim_dict['future_mimic_buf'] = 0
+        for key in config.env.config.obs.future_mimic_buf:
+            future_mimic_dim_dict['future_mimic_buf'] += each_dict_obs_dims[key]
+        future_mimic_dim_dict['future_mimic_buf'] *= config.env.config.obs.tar_obs_mimic.tar_obs_mimic_counter
         
-        logger.info(f"obs_mimic_dim: {obs_mimic_dim_dict}")
+        logger.info(f"future_mimic_dim: {future_mimic_dim_dict}")
 
     auxiliary_obs_dims = {}
     for aux_obs_key, aux_config in _aux_obs_key_list.items():
@@ -88,7 +88,7 @@ def determine_obs_dim(config) -> None:
                 
     config.robot.algo_obs_dim_dict = obs_dim_dict
     logger.info(f"algo_obs_dim_dict: {config.robot.algo_obs_dim_dict}")
-    return obs_dim_dict, each_dict_obs_dims, auxiliary_obs_dims, obs_mimic_dim_dict
+    return obs_dim_dict, each_dict_obs_dims, auxiliary_obs_dims, future_mimic_dim_dict
 
 def pre_process_config(config) -> None:
     
@@ -102,8 +102,7 @@ def pre_process_config(config) -> None:
     else:
         return 
     
-    obs_dim_dict, each_dict_obs_dims, auxiliary_obs_dims, obs_mimic_dim_dict = determine_obs_dim(config)
-    
+    obs_dim_dict, each_dict_obs_dims, auxiliary_obs_dims, future_mimic_dim_dict = determine_obs_dim(config)
     obs_slices = compute_obs_key_slices(config, obs_dim_dict, each_dict_obs_dims, auxiliary_obs_dims)
     config.env.config.obs.post_compute_config["obs_slices"] = obs_slices
     print(f"obs_slices: {obs_slices}")

@@ -15,6 +15,7 @@ from isaac_utils.rotations import (
     get_euler_xyz_in_tensor,
     calc_yaw_heading_quat_inv
 )
+from isaac_utils.customize import (euler_from_quaternion)
 # from isaacgym import gymtorch, gymapi, gymutil
 from scipy.spatial.transform import Rotation as sRot
 
@@ -609,20 +610,24 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         motion_res = self.kick_motion_res()
 
         if "tar_obs_mimic" in self.config.obs and self.config.obs.tar_obs_mimic.enabled:
-            motion_res_buffer = self.kick_motion_res_multiplestep()
-            root_pos = motion_res_buffer['root_pos']
-            root_rot = motion_res_buffer['root_rot']
-            root_vel = motion_res_buffer['root_vel']
-            root_ang_vel = motion_res_buffer['root_ang_vel']
-            dof_pos = motion_res_buffer['dof_pos']
-            
-        # if "future_ref_steps" in self.config.obs and self.config.obs.future_ref_steps > 0:
-        #     future_motion_res = self.kick_motion_res_multiplestep()
-        #     future_ref_joint_pos = future_motion_res["dof_pos"] # [num_envs, num_future_steps, num_dofs]
-        #     future_ref_joint_vel = future_motion_res["dof_vel"] # [num_envs, num_future_steps, num_dofs]
-        #     self._obs_future_ref_dof_pos = future_ref_joint_pos.view(B, -1) # [num_envs, num_future_steps * num_dofs]
-        #     self._obs_future_ref_dof_vel = future_ref_joint_vel.view(B, -1) # [num_envs, num_future_steps * num_dofs]
-           
+            future_motion_buffer = self.kick_motion_res_multiplestep()
+            future_root_pos = future_motion_buffer['root_pos']
+            future_root_rot = future_motion_buffer['root_rot']
+            future_root_vel = future_motion_buffer['root_vel']
+            future_root_ang_vel = future_motion_buffer['root_ang_vel']
+            future_dof_pos = future_motion_buffer['dof_pos']
+
+            roll, pitch, yaw = euler_from_quaternion(future_root_rot)
+
+            self.obs_mimic_buf = torch.cat((
+                future_root_pos[..., 2:3].squeeze(),
+                roll, pitch,
+                future_root_vel.view(self.num_envs, -1),
+                future_root_ang_vel[..., 2:3].squeeze(),
+                future_dof_pos.view(self.num_envs, -1)
+            ), dim=-1)
+
+
         if self._motion_lib.has_contact_mask:
             self.ref_contact_mask = motion_res["contact_mask"]
             
@@ -1039,6 +1044,10 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
             history_tensor = history_tensor.reshape(history_tensor.shape[0], -1)
             history_tensors.append(history_tensor)
         return torch.cat(history_tensors, dim=1)
+
+    def _get_obs_future_mimic_buf(self,):
+        
+        pass
     ###############################################################
     
     def _init_adaptive_sigma(self):
