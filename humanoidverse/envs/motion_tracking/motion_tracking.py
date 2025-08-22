@@ -267,7 +267,12 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         self.motion_ids = torch.arange(self.num_envs).to(self.device)
         self.motion_start_times = torch.zeros(self.num_envs, dtype=torch.float32, device=self.device, requires_grad=False)
         self.motion_len = torch.zeros(self.num_envs, dtype=torch.float32, device=self.device, requires_grad=False)
-        
+
+        # 初始化运动序列间隔
+        if "tar_obs_mimic" in self.config.obs and self.config.obs.tar_obs_mimic.enabled == True:
+            self.tar_obs_steps = [i * self.config.obs.tar_obs_mimic.tar_obs_mimic_step for i in range(self.config.obs.tar_obs_mimic.tar_obs_mimic_counter)]
+            self.tar_obs_steps = torch.tensor(self.tar_obs_steps, device=self.device, dtype=torch.int)
+
     def _init_domain_rand_buffers(self):
         super()._init_domain_rand_buffers()
         self.ref_episodic_offset = torch.zeros(self.num_envs, 3, dtype=torch.float, device=self.device, requires_grad=False)
@@ -569,7 +574,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         return self._kick_motion_res_buffer
     
     _kick_motion_res_counter_multistep = -1
-    _kick_motion_res_multistep_buffer: Optional[Dict[str, torch.Tensor]] = None
+    _kick_motion_res_multiplestep_buffer: Optional[Dict[str, torch.Tensor]] = None
     def kick_motion_res_multiplestep(self) -> Dict[str, torch.Tensor]:
         if self._kick_motion_res_counter_multistep == self.common_step_counter:
             return self._kick_motion_res_multiplestep_buffer # type: ignore
@@ -577,14 +582,14 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         self._kick_motion_res_counter_multistep = self.common_step_counter
         buffer = {}
 
-        for i in range(self.config.obs.future_ref_steps):
-            motion_times = (self.episode_length_buf + 1 + i) * self.dt + self.motion_start_times
+        for i in range(len(self.tar_obs_steps)):
+            motion_times = (self.episode_length_buf + self.tar_obs_steps[i] + 1) * self.dt + self.motion_start_times
             offset = self.env_origins
-            motion= self._motion_lib.get_motion_state(self.motion_ids, motion_times, offset=offset)
-            for k, v in motion.items():
-                if k not in buffer:
-                    buffer[k] = []
-                buffer[k].append(v.unsqueeze(1))
+            motion_res = self._motion_lib.get_motion_state(self.motion_ids, motion_times, offset)
+            for key, value in motion_res.items():
+                if key not in buffer:
+                    buffer[key] = []
+                buffer[key].append(value.unsqueeze(1))
 
         self._kick_motion_res_multiplestep_buffer = {k: torch.cat(v, dim=1) for k, v in buffer.items()}  # Dict[str, Tensor[B, T, D]]
         return self._kick_motion_res_multiplestep_buffer
@@ -602,17 +607,22 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         # # motion_res = self._get_state_from_motionlib_cache_trimesh(self.motion_ids, motion_times, offset= offset)
         # motion_res = self._motion_lib.get_motion_state(self.motion_ids, motion_times, offset=offset)
         motion_res = self.kick_motion_res()
-        if "future_ref_steps" in self.config.obs and self.config.obs.future_ref_steps > 0:
-            future_motion_res = self.kick_motion_res_multiplestep()
-            future_ref_joint_pos = future_motion_res["dof_pos"] # [num_envs, num_future_steps, num_dofs]
-            future_ref_joint_vel = future_motion_res["dof_vel"] # [num_envs, num_future_steps, num_dofs]
-            self._obs_future_ref_dof_pos = future_ref_joint_pos.view(B, -1) # [num_envs, num_future_steps * num_dofs]
-            self._obs_future_ref_dof_vel = future_ref_joint_vel.view(B, -1) # [num_envs, num_future_steps * num_dofs]
-            #  (Pdb) motion_res.keys()
-            #  dict_keys(['root_pos', 'root_rot', 'dof_pos', 'root_vel', 'root_ang_vel', 'dof_vel', 'motion_aa', 'motion_bodies', 'rg_pos', 'rb_rot', 'body_vel', 'body_ang_vel', 'rg_pos_t', 'rg_rot_t', 'body_vel_t', 'body_ang_vel_t'])
+
+        if "tar_obs_mimic" in self.config.obs and self.config.obs.tar_obs_mimic.enabled:
+            motion_res_buffer = self.kick_motion_res_multiplestep()
+            root_pos = motion_res_buffer['root_pos']
+            root_rot = motion_res_buffer['root_rot']
+            root_vel = motion_res_buffer['root_vel']
+            root_ang_vel = motion_res_buffer['root_ang_vel']
+            dof_pos = motion_res_buffer['dof_pos']
             
-                # (Pdb) print( [(k,v.shape) for k,v in motion_res.items()  ]  )
-                # [('root_pos', torch.Size([1, 3])), ('root_rot', torch.Size([1, 4])), ('dof_pos', torch.Size([1, 23])), ('root_vel', torch.Size([1, 3])), ('root_ang_vel', torch.Size([1, 3])), ('dof_vel', torch.Size([1, 23])), ('motion_aa', torch.Size([1, 72])), ('motion_bodies', torch.Size([1, 17])), ('rg_pos', torch.Size([1, 24, 3])), ('rb_rot', torch.Size([1, 24, 4])), ('body_vel', torch.Size([1, 24, 3])), ('body_ang_vel', torch.Size([1, 24, 3])), ('rg_pos_t', torch.Size([1, 27, 3])), ('rg_rot_t', torch.Size([1, 27, 4])), ('body_vel_t', torch.Size([1, 27, 3])), ('body_ang_vel_t', torch.Size([1, 27, 3]))]
+        # if "future_ref_steps" in self.config.obs and self.config.obs.future_ref_steps > 0:
+        #     future_motion_res = self.kick_motion_res_multiplestep()
+        #     future_ref_joint_pos = future_motion_res["dof_pos"] # [num_envs, num_future_steps, num_dofs]
+        #     future_ref_joint_vel = future_motion_res["dof_vel"] # [num_envs, num_future_steps, num_dofs]
+        #     self._obs_future_ref_dof_pos = future_ref_joint_pos.view(B, -1) # [num_envs, num_future_steps * num_dofs]
+        #     self._obs_future_ref_dof_vel = future_ref_joint_vel.view(B, -1) # [num_envs, num_future_steps * num_dofs]
+           
         if self._motion_lib.has_contact_mask:
             self.ref_contact_mask = motion_res["contact_mask"]
             
@@ -1279,7 +1289,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
             # max diff joint pos: 0.2->0.5
         return r_max_joint_pos
     
-    # 上下身分离
+    
     def _reward_teleop_joint_position(self):
         joint_pos_diff = self.dif_joint_angles
         diff_joint_pos_dist = (joint_pos_diff**2).mean(dim=-1)

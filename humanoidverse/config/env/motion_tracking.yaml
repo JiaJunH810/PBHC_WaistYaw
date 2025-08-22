@@ -81,8 +81,6 @@ env:
         level_down_threshold: 40
         level_up_threshold: 60
 
-    tar_obs_mimic_step: 5
-    tar_obs_mimic_counter: 20
 
 # Globally accessible parameters
 log_task_name: motion_tracking

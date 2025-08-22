@@ -111,10 +111,6 @@ class LeggedRobotBase(BaseTask):
         else:
             self.use_noise_process = False
         
-        # 初始化运动序列间隔
-        self.tar_obs_steps = [i * self.config.tar_obs_mimic_step for i in range(self.config.tar_obs_mimic_counter)]
-        self.tar_obs_steps = torch.tensor(self.tar_obs_steps, device=self.device, dtype=torch.int)
-        
         
 
     def _domain_rand_config(self):
@@ -294,8 +290,6 @@ class LeggedRobotBase(BaseTask):
 
         self._pre_compute_observations_callback()
 
-        # 获取运动序列
-        self.obtain_mimic_obs()
         
         self._update_tasks_callback()
         # compute observations, rewards, resets, ...
@@ -331,11 +325,6 @@ class LeggedRobotBase(BaseTask):
             if self.debug_viz:
                 self._draw_debug_vis()
 
-    # 获取观测网络时的运动序列
-    def obtain_mimic_obs(self):
-
-        
-        pass
 
     def _setup_simulator_next_task(self):
         pass
