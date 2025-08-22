@@ -30,7 +30,7 @@ rewards:
       penalty_action_rate: -0.3  # Decreased from -0.5 to -0.3
       feet_air_time: 1.2  # Increased from 1.0 to 1.2
       penalty_feet_contact_forces: -0.01
-      penalty_orientation: -1.0
+      penalty_orientation: -3.0
       penalty_stumble: -2.0
       penalty_slippage: -3.0
       penalty_teleop_root_position_z: -10.0
