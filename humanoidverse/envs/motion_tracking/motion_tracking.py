@@ -619,7 +619,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
 
             roll, pitch, yaw = euler_from_quaternion(future_root_rot)
 
-            self.obs_mimic_buf = torch.cat((
+            self.future_mimic_buf = torch.cat((
                 future_root_pos[..., 2:3].squeeze(),
                 roll, pitch,
                 future_root_vel.view(self.num_envs, -1),
@@ -1046,8 +1046,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         return torch.cat(history_tensors, dim=1)
 
     def _get_obs_future_mimic_buf(self,):
-        
-        pass
+        return self.future_mimic_buf
     ###############################################################
     
     def _init_adaptive_sigma(self):
