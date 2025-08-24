@@ -12,6 +12,7 @@ from typing import Tuple, Dict
 
 from isaac_utils.rotations import get_euler_xyz_in_tensor
 from isaac_utils.rotations import quat_apply_yaw, wrap_to_pi
+
 from humanoidverse.envs.base_task.base_task import BaseTask
 from humanoidverse.utils.noise_tool import noise_process_dict
 
@@ -19,12 +20,15 @@ from humanoidverse.envs.env_utils.history_handler import HistoryHandler
 from termcolor import colored
 from humanoidverse.utils.helpers import parse_observation
 from humanoidverse.envs.env_utils.visualization import Point
+from collections import deque
 
 from loguru import logger
 import copy
 
+
 from isaac_utils.customize import (
-    batch_local_to_world_com
+    batch_local_to_world_com,
+    euler_from_quaternion
 )
 
 
@@ -111,7 +115,7 @@ class LeggedRobotBase(BaseTask):
         else:
             self.use_noise_process = False
         
-        
+
 
     def _domain_rand_config(self):
         if self.config.domain_rand.push_robots:
@@ -305,7 +309,7 @@ class LeggedRobotBase(BaseTask):
             self.simulator.set_actor_root_state_tensor(refresh_env_ids, self.simulator.all_root_states)
             self.simulator.set_dof_state_tensor(refresh_env_ids, self.simulator.dof_state)
             self.need_to_refresh_envs[refresh_env_ids] = False
-
+        
         self._compute_observations() # in some cases a simulation step might be required to refresh some obs (for example body positions)
         
         self._post_compute_observations_callback()
@@ -662,6 +666,7 @@ class LeggedRobotBase(BaseTask):
             self._update_average_episode_length(env_ids)
 
             self.history_handler.reset(env_ids)
+
 
     def get_mppi_buffers(self, env_ids):
         """ Get buffers for MPPI
@@ -1184,6 +1189,12 @@ class LeggedRobotBase(BaseTask):
     
     def _get_obs_projected_gravity_noise(self,):
         return self.projected_gravity_noise
+
+    def _get_obs_gravity_projected(self,):
+        return self.projected_gravity
+
+    def _get_obs_gravity_projected_noise(self,):
+        return self.projected_gravity_noise
     
     def _get_obs_dof_pos_noise(self,):
         return self.dof_pos_noise - self.default_dof_pos
@@ -1191,6 +1202,16 @@ class LeggedRobotBase(BaseTask):
     def _get_obs_dof_vel_noise(self,):
         return self.dof_vel_noise
     
+    def _get_obs_base_roll(self,):
+        base_roll, _, _ = euler_from_quaternion(self.simulator.base_quat)
+        base_roll = base_roll.reshape(-1, 1) if base_roll.dim() == 1 else base_roll
+        return base_roll
+
+    def _get_obs_base_pitch(self,):
+        _, base_pitch, _ = euler_from_quaternion(self.simulator.base_quat)
+        base_pitch = base_pitch.reshape(-1, 1) if base_pitch.dim() == 1 else base_pitch
+        return base_pitch
+
     
     def _get_obs_history(self,):
         assert "history" in self.config.obs.obs_auxiliary.keys()

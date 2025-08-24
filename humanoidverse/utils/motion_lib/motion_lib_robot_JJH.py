@@ -438,7 +438,7 @@ class MotionLibBase():
 
         return_dict.update({
             "root_pos": rg_pos[..., 0, :].clone(),
-            "root_rot": rb_rot[..., 0, :].clone(),
+            "root_rot": rb_rot[..., 0, :].clone(),      # 根据gpt, 顺序是xyzw
             "dof_pos": dof_pos.clone(),
             "root_vel": body_vel[..., 0, :].clone(),
             "root_ang_vel": body_ang_vel[..., 0, :].clone(),

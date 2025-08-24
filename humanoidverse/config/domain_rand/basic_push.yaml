@@ -10,7 +10,7 @@ domain_rand:
   _push_fixed: true
   push_robots: true
   push_interval_s: [3, 6]
-  max_push_vel_xy: 0.25
+  max_push_vel_xy: 0.1
   push_robot_curriculum: false
   push_robot_level_down_threshold: 40
   push_robot_level_up_threshold: 70

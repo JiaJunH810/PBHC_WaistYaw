@@ -45,6 +45,13 @@ algo:
       actor: 
         input_dim: [actor_obs]
         output_dim: [robot_action_dim]
+        essesce_length: ???
+        motion_length: ???
+        motion_single_length: ???
+        motion_output: 128
+        history_length : ???
+        history_single_length: ???
+        history_output: 64
         layer_config:
           type: MLP
           hidden_dims: [512, 256, 128]
@@ -54,6 +61,9 @@ algo:
         input_dim: [critic_obs]
         # output_dim: [1]
         output_dim: [num_rew_fn]
+        history_length: ???
+        hisotry_single_length: ???
+        history_output: 128
         layer_config:
           type: MLP
           hidden_dims: [768, 512, 128]

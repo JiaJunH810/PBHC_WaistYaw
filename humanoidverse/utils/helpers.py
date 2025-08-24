@@ -13,7 +13,7 @@ from loguru import logger
 np2torch = lambda x: torch.tensor(x, dtype=torch.float32)
 torch2np = lambda x: x.cpu().numpy() if isinstance(x, torch.Tensor) else x
 
-def compute_obs_key_slices(config, obs_dim_dict, each_dict_obs_dims, auxiliary_obs_dims):
+def compute_obs_key_slices(config, obs_dim_dict, each_dict_obs_dims, auxiliary_obs_dims, future_mimic_dim_dict):
     """
     返回一个 dict: 
     {
@@ -36,6 +36,8 @@ def compute_obs_key_slices(config, obs_dim_dict, each_dict_obs_dims, auxiliary_o
             raw_key = key[:-4] if key.endswith("_raw") else key
             if raw_key in each_dict_obs_dims:
                 dim = each_dict_obs_dims[raw_key]
+            elif raw_key == "future_mimic_buf":
+                dim = future_mimic_dim_dict[raw_key]
             else:
                 dim = auxiliary_obs_dims[raw_key]
             obs_slices[obs_key][key] = (current_pos, current_pos + dim)
@@ -70,10 +72,13 @@ def determine_obs_dim(config) -> None:
     auxiliary_obs_dims = {}
     for aux_obs_key, aux_config in _aux_obs_key_list.items():
         auxiliary_obs_dims[aux_obs_key] = 0
+        history_len = config.env.config.obs.get(f"{aux_obs_key}_len")
         for _key, _num in aux_config.items():
+            assert history_len == _num
             assert _key in config.env.config.obs.obs_dims.keys()
             auxiliary_obs_dims[aux_obs_key] += config.env.config.obs.obs_dims[_key] * _num
     logger.info(f"auxiliary_obs_dims: {auxiliary_obs_dims}")
+    
     for obs_key, obs_config in _obs_key_list.items():
         obs_dim_dict[obs_key] = 0
         for key in obs_config:
@@ -81,6 +86,9 @@ def determine_obs_dim(config) -> None:
             if key in config.env.config.obs.obs_dims.keys(): 
                 obs_dim_dict[obs_key] += config.env.config.obs.obs_dims[key]
                 logger.info(f"{obs_key}: {key} has dim: {config.env.config.obs.obs_dims[key]}")
+            elif key == "future_mimic_buf":
+                obs_dim_dict[obs_key] += future_mimic_dim_dict[key]
+                logger.info(f"{obs_key}: {key} has dim: {future_mimic_dim_dict[key]}")
             else:
                 obs_dim_dict[obs_key] += auxiliary_obs_dims[key]
                 logger.info(f"{obs_key}: {key} has dim: {auxiliary_obs_dims[key]}")
@@ -103,11 +111,31 @@ def pre_process_config(config) -> None:
         return 
     
     obs_dim_dict, each_dict_obs_dims, auxiliary_obs_dims, future_mimic_dim_dict = determine_obs_dim(config)
-    obs_slices = compute_obs_key_slices(config, obs_dim_dict, each_dict_obs_dims, auxiliary_obs_dims)
+    
+    obs_slices = compute_obs_key_slices(config, obs_dim_dict, each_dict_obs_dims, auxiliary_obs_dims, future_mimic_dim_dict)
     config.env.config.obs.post_compute_config["obs_slices"] = obs_slices
     print(f"obs_slices: {obs_slices}")
     # breakpoint()
 
+    # for mh_ppo actor
+    config.algo.config.module_dict.actor.history_length = config.obs.history_actor_len
+    config.algo.config.module_dict.actor.history_single_length = 0
+    for key in config.obs.obs_auxiliary.history_actor.keys():
+        config.algo.config.module_dict.actor.history_single_length += each_dict_obs_dims[key]
+
+    config.algo.config.module_dict.actor.motion_length = config.obs.tar_obs_mimic.tar_obs_mimic_counter
+    motion_single_length = 0
+    for key in config.obs.future_mimic_buf:
+        motion_single_length += each_dict_obs_dims[key]
+    config.algo.config.module_dict.actor.motion_single_length = motion_single_length
+    print(config.algo.config.module_dict.actor)
+
+    # for mh_ppo critic
+    config.algo.config.module_dict.critic.history_length = config.obs.history_critic_len
+    config.algo.config.module_dict.critic.history_single_length = 0
+    for key in config.obs.obs_auxiliary.history_critic.keys():
+        config.algo.config.module_dict.critic.history_single_length += each_dict_obs_dims[key]
+    print(config.algo.config.module_dict.critic)
                 
     if config.log_task_name=='motion_tracking':
         motion_file = config.robot.motion.motion_file

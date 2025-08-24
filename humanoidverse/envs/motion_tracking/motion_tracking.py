@@ -619,13 +619,23 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
 
             roll, pitch, yaw = euler_from_quaternion(future_root_rot)
 
-            self.future_mimic_buf = torch.cat((
-                future_root_pos[..., 2:3].squeeze(),
+            tar_obs_mimic_counter = self.config.obs.tar_obs_mimic.tar_obs_mimic_counter
+            future_root_pos = future_root_pos.reshape(self.num_envs, tar_obs_mimic_counter, 3)
+            roll = roll.reshape(self.num_envs, tar_obs_mimic_counter, 1)
+            pitch = pitch.reshape(self.num_envs, tar_obs_mimic_counter, 1)
+            future_root_vel = future_root_vel.reshape(self.num_envs, tar_obs_mimic_counter, 3)
+            future_root_ang_vel = future_root_ang_vel.reshape(self.num_envs, tar_obs_mimic_counter, 3)
+            future_dof_pos = future_dof_pos.reshape(self.num_envs, tar_obs_mimic_counter, -1)
+
+            future_mimic_buf = torch.cat((
+                future_root_pos[..., 2:3],
                 roll, pitch,
-                future_root_vel.view(self.num_envs, -1),
-                future_root_ang_vel[..., 2:3].squeeze(),
-                future_dof_pos.view(self.num_envs, -1)
+                future_root_vel,
+                future_root_ang_vel[..., 2:3],
+                future_dof_pos,
             ), dim=-1)
+
+            self.future_mimic_buf = future_mimic_buf.reshape(self.num_envs, -1)
 
 
         if self._motion_lib.has_contact_mask:
@@ -982,6 +992,12 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         # print(self._obs_local_ref_rigid_body_pos_relyaw.mean(),self._obs_local_ref_rigid_body_pos_relyaw.std())
         return self._obs_local_ref_rigid_body_pos_relyaw
 
+    def _get_obs_body_rigid_pos_local_ref(self):
+        return self._obs_local_ref_rigid_body_pos
+
+    def _get_obs_body_rigid_pos_local_ref_relyaw(self):
+        return self._obs_local_ref_rigid_body_pos_relyaw
+
     def _get_obs_ref_motion_phase(self):
         # print(self._ref_motion_phase)
         return self._ref_motion_phase
@@ -1021,6 +1037,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         return self._obs_future_ref_dof_vel
 
     ######################### Observations #########################
+    '''
     def _get_obs_history_actor(self,):
         assert "history_actor" in self.config.obs.obs_auxiliary.keys()
         history_config = self.config.obs.obs_auxiliary['history_actor']
@@ -1032,7 +1049,23 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
             history_tensor = history_tensor.reshape(history_tensor.shape[0], -1)  # Shape: [4096, history_length*obs_dim]
             history_tensors.append(history_tensor)
         return torch.cat(history_tensors, dim=1)
+    '''
+    def _get_obs_history_actor(self,):
+        assert "history_actor" in self.config.obs.obs_auxiliary.keys()
+        history_config = self.config.obs.obs_auxiliary['history_actor']
+        history_key_list = history_config.keys()
+        history_length = self.config.obs.history_actor_len
+        history_tensors = []
+        for i in range(history_length):
+            history_tensor_single = []
+            for key in sorted(history_key_list):
+                history_tensor_single.append(self.history_handler.query(key)[:, i])
+            history_tensor_single = torch.cat(history_tensor_single, dim=-1)
+            history_tensors.append(history_tensor_single)
+        history_tensors = torch.cat(history_tensors, dim=-1).to(self.device).type(torch.float32)
+        return history_tensors
     
+    '''
     def _get_obs_history_critic(self,):
         assert "history_critic" in self.config.obs.obs_auxiliary.keys()
         history_config = self.config.obs.obs_auxiliary['history_critic']
@@ -1044,7 +1077,23 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
             history_tensor = history_tensor.reshape(history_tensor.shape[0], -1)
             history_tensors.append(history_tensor)
         return torch.cat(history_tensors, dim=1)
-
+    '''
+    def _get_obs_history_critic(self,):
+        assert "history_critic" in self.config.obs.obs_auxiliary.keys()
+        history_config = self.config.obs.obs_auxiliary['history_critic']
+        history_key_list = history_config.keys()
+        history_length = self.config.obs.history_critic_len
+        history_tensors = []
+        for i in range(history_length):
+            history_tensor_single = []
+            for key in sorted(history_key_list):
+                history_tensor_single.append(self.history_handler.query(key)[:, i])
+            history_tensor_single = torch.cat(history_tensor_single, dim=-1)
+            history_tensors.append(history_tensor_single)
+        history_tensors = torch.cat(history_tensors, dim=-1).to(self.device).type(torch.float32)
+        
+        return history_tensors
+    
     def _get_obs_future_mimic_buf(self,):
         return self.future_mimic_buf
     ###############################################################

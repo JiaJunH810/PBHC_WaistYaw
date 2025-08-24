@@ -6,7 +6,11 @@ import torch
 import torch.nn as nn
 from torch.distributions import Normal
 
-from .modules import BaseModule
+from .modules import (
+    BaseModule,
+    ActorModule,
+    CriticModule
+)
 
 class PPOActor(nn.Module):
     def __init__(self,
@@ -18,8 +22,9 @@ class PPOActor(nn.Module):
 
         module_config_dict = self._process_module_config(module_config_dict, num_actions)
 
-        self.actor_module = BaseModule(obs_dim_dict, module_config_dict)
-
+        # self.actor_module = BaseModule(obs_dim_dict, module_config_dict)
+        self.actor_module = ActorModule(obs_dim_dict, module_config_dict)
+        
         # Action noise
         self.std = nn.Parameter(init_noise_std * torch.ones(num_actions))
         self.distribution = None
@@ -84,8 +89,8 @@ class PPOCritic(nn.Module):
                 obs_dim_dict,
                 module_config_dict):
         super(PPOCritic, self).__init__()
-
-        self.critic_module = BaseModule(obs_dim_dict, module_config_dict)
+        # self.critic_module = BaseModule(obs_dim_dict, module_config_dict)
+        self.critic_module = CriticModule(obs_dim_dict, module_config_dict)
 
     @property
     def critic(self):
