@@ -104,3 +104,29 @@ def euler_from_quaternion(quat_angle):
         yaw_z = torch.atan2(t3, t4)
      
         return roll_x, pitch_y, yaw_z # in radians
+
+def quat_rotate_inverse_batch(q, v):
+    # 保存原始形状
+    original_shape = v.shape
+    # 将前两个维度合并，以便处理批量数据
+    q = q.view(-1, q.shape[-1])
+    v = v.view(-1, v.shape[-1])
+    
+    shape = q.shape
+    q_w = q[:, -1]
+    q_vec = q[:, :3]
+    
+    # 计算第一部分
+    a = v * (2.0 * q_w ** 2 - 1.0).unsqueeze(-1)
+    
+    # 计算第二部分
+    b = torch.cross(q_vec, v, dim=-1) * q_w.unsqueeze(-1) * 2.0
+    
+    # 计算第三部分
+    # 注意：这里使用einsum代替bmm以处理任意数量的批次维度
+    dot_product = torch.einsum('bi,bi->b', q_vec, v).unsqueeze(-1)
+    c = q_vec * dot_product * 2.0
+    
+    # 组合结果并恢复原始形状
+    result = a - b + c
+    return result.view(original_shape)

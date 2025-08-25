@@ -9,13 +9,12 @@ from isaac_utils.rotations import (
     calc_heading_quat,
     calc_heading_quat_inv,
     quat_mul,
-    quat_rotate_inverse,
     xyzw_to_wxyz,
     wxyz_to_xyzw,
     get_euler_xyz_in_tensor,
     calc_yaw_heading_quat_inv
 )
-from isaac_utils.customize import (euler_from_quaternion)
+from isaac_utils.customize import (euler_from_quaternion, quat_rotate_inverse_batch)
 # from isaacgym import gymtorch, gymapi, gymutil
 from scipy.spatial.transform import Rotation as sRot
 
@@ -618,6 +617,9 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
             future_dof_pos = future_motion_buffer['dof_pos']
 
             roll, pitch, yaw = euler_from_quaternion(future_root_rot)
+            
+            future_root_vel = quat_rotate_inverse_batch(future_root_rot, future_root_vel)
+            future_root_ang_vel = quat_rotate_inverse_batch(future_root_rot, future_root_ang_vel)
 
             tar_obs_mimic_counter = self.config.obs.tar_obs_mimic.tar_obs_mimic_counter
             future_root_pos = future_root_pos.reshape(self.num_envs, tar_obs_mimic_counter, 3)
