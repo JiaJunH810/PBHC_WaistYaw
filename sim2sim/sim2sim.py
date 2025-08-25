@@ -153,7 +153,7 @@ class HumanoidEnv:
                 self.viewer.cam.lookat = self.data.qpos.astype(np.float32)[:3]
                 self.viewer.render()
                 
-                self.proprio_history_buf.append(obs_prop)
+                self.proprio_history_buf.appendleft(obs_prop)   # append to front
             
             torque = (target_pos - dof_pos) * self.config.kp - dof_vel * self.config.kd
             torque = torque.cpu().numpy()
