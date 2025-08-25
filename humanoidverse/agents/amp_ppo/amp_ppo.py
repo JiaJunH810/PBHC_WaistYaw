@@ -4,7 +4,7 @@ import torch.optim as optim
 
 from humanoidverse.agents.modules.amp_modules import *
 from humanoidverse.agents.modules.data_utils import RolloutStorage
-from humanoidverse.agents.modules.data_utils import AMPReplayBuffer
+from humanoidverse.agents.modules.replay_buffer import AMPReplayBuffer
 from humanoidverse.envs.base_task.base_task import BaseTask
 from humanoidverse.agents.base_algo.base_algo import BaseAlgo
 from humanoidverse.agents.callbacks.base_callback import RL_EvalCallback
@@ -102,6 +102,8 @@ class AMPPPO(BaseAlgo):
         self.discriminator_learning_rate = self.config.discriminator_learning_rate
         self.use_normalizer = self.config.use_normalizer
         self.amp_replay_buffer_size = self.config.amp_replay_buffer_size
+        self.normalize_eps = self.config.normalize_eps
+        self.normalize_clip_range = self.config.normalize_clip_range
 
     def setup(self):
         # import ipdb; ipdb.set_trace()
@@ -116,6 +118,7 @@ class AMPPPO(BaseAlgo):
     def _setup_amp_models_and_optimizer(self):
         # Determine AMP observation dimension
         self.discriminator_obs = self.env.config.obs.obs_dict['discriminator_obs'] if hasattr(self.env.config.obs, 'obs_dict') and 'discriminator_obs' in self.env.config.obs.obs_dict else 0
+        self.discriminator_obs_dim = self.algo_obs_dim_dict['discriminator_obs']
 
         if self.discriminator_obs == 0:
             logger.warning("Discriminator observation dimension is 0, AMP will be disabled")
@@ -134,15 +137,15 @@ class AMPPPO(BaseAlgo):
         # Create replay buffer for AMP
         self.amp_storage = AMPReplayBuffer(
             buffer_size=self.amp_replay_buffer_size,
-            state_dim=self.discriminator_obs,
+            obs_dim=self.discriminator_obs_dim,
             device=self.device
         )
-        
-        self.amp_loader = AMPLoader(motion_cfg=self.env.config.robot.motion, num_envs=self.num_envs, device=self.device)
 
-        self.amp_normalizer = AMPNormalizer(size=self.amp_obs_dim)
+        self.amp_normalizer = AMPNormalizer(size=self.discriminator_obs_dim, eps=self.normalize_eps, clip_range=self.normalize_clip_range, device=self.device)
 
         self.discriminator_optimizer = optim.Adam(self.discriminator.parameters(), lr=self.discriminator_learning_rate)
+
+        print(self.discriminator)
 
     def _setup_models_and_optimizer(self):
         self.config.module_dict.critic['output_dim'][-1] = self.num_rew_fn
@@ -208,12 +211,12 @@ class AMPPPO(BaseAlgo):
     def _eval_mode(self):
         self.actor.eval()
         self.critic.eval()
-        self.discriminator.eval()
+        # self.discriminator.eval()
 
     def _train_mode(self):
         self.actor.train()
         self.critic.train()
-        self.discriminator.train()
+        # self.discriminator.train()
 
     def load(self, ckpt_path):
         # import ipdb; ipdb.set_trace()
@@ -269,7 +272,6 @@ class AMPPPO(BaseAlgo):
             self.start_time = time.time()
 
             obs_dict =self._rollout_step(obs_dict)
-
             loss_dict = self._training_step()
 
             self.stop_time = time.time()
@@ -344,6 +346,8 @@ class AMPPPO(BaseAlgo):
                 
                 policy_state_dict = {}
                 policy_state_dict = self._actor_rollout_step(obs_dict, policy_state_dict)
+                # 取当前状态的AMP观察数据（拿来的时候已经是添加噪声的了）
+                amp_state_obs = self.get_amp_dict(obs_dict)
                 values = self._critic_eval_step(obs_dict).detach() # (num_rew_fn, 1)
                 policy_state_dict["values"] = values
 
@@ -357,7 +361,12 @@ class AMPPPO(BaseAlgo):
                 actor_state = {}
                 actor_state["actions"] = actions
                 obs_dict, rewards, dones, infos = self.env.step(actor_state)
+                # 取下一个状态的AMP观察数据
+                amp_next_state_obs = self.get_amp_dict(obs_dict)
                 # critic_obs = privileged_obs if privileged_obs is not None else obs
+                # 为amp_storage添加数据
+                self.amp_storage.insert(amp_state_obs, amp_next_state_obs)
+
                 for obs_key in obs_dict.keys():
                     obs_dict[obs_key] = obs_dict[obs_key].to(self.device)
                     self.storage.update_key('next_'+obs_key, obs_dict[obs_key])
@@ -409,6 +418,9 @@ class AMPPPO(BaseAlgo):
             self.storage.batch_update_data('advantages', advantages)
 
         return obs_dict
+
+    def get_amp_dict(self, obs_dict):
+        return obs_dict['discriminator_obs']
 
     def _process_env_step(self, rewards, dones, infos):
         self.actor.reset(dones)
@@ -467,14 +479,14 @@ class AMPPPO(BaseAlgo):
         loss_dict = self._init_loss_dict_at_training_step()
 
         generator = self.storage.mini_batch_generator(self.num_mini_batches, self.num_learning_epochs)
-
+        # 4*5个组，每组num_envs*24//4个
         amp_policy_generator = self.amp_storage.feed_forward_generator(
             self.num_learning_epochs * self.num_mini_batches,
             self.storage.num_envs * self.storage.num_transitions_per_env // self.num_mini_batches)
-        
-        amp_expert_generator = self.amp_data.feed_forward_generator(
+        amp_expert_generator = self.env.amp_loader.feed_forward_generator(
             self.num_learning_epochs * self.num_mini_batches,
             self.storage.num_envs * self.storage.num_transitions_per_env // self.num_mini_batches)
+
 
         for policy_state_dict, sample_amp_policy, sample_amp_expert in zip(generator, amp_policy_generator, amp_expert_generator):
             # 处理策略数据
@@ -482,7 +494,6 @@ class AMPPPO(BaseAlgo):
                 policy_state_dict[policy_state_key] = policy_state_dict[policy_state_key].to(self.device)
 
             loss_dict = self._update_algo_step(policy_state_dict, loss_dict, sample_amp_policy, sample_amp_expert)
-
         num_updates = self.num_learning_epochs * self.num_mini_batches
         for key in loss_dict.keys():
             loss_dict[key] /= num_updates
@@ -519,11 +530,9 @@ class AMPPPO(BaseAlgo):
     
     def _update_amp_ppo(self, loss_dict, sample_amp_policy, sample_amp_expert):
 
-        
-
         policy_state, policy_next_state = sample_amp_policy
         expert_state, expert_next_state = sample_amp_expert
-        
+
         # Normalize if using normalizer
         if self.amp_normalizer is not None:
             policy_state = self.amp_normalizer.normalize_torch(policy_state, self.device)

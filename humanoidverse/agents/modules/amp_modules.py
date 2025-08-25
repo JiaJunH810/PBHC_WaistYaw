@@ -20,7 +20,7 @@ class AMPDiscriminator(nn.Module):
     def _process_module_config(self, obs_dim_dict, module_config_dict):
         for idx, input_dim_placeholder in enumerate(module_config_dict['input_dim']):
             if input_dim_placeholder == 'discriminator_obs':
-                module_config_dict['input_dim'][idx] = obs_dim_dict['discriminator'] * 2
+                module_config_dict['input_dim'][idx] = obs_dim_dict['discriminator_obs'] * 2
         
         for idx, output_dim_placeholder in enumerate(module_config_dict['output_dim']):
             if output_dim_placeholder == 'discriminator_output_dim':

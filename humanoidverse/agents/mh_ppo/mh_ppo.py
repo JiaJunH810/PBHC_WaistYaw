@@ -425,7 +425,6 @@ class MHPPO(BaseAlgo):
         loss_dict = self._init_loss_dict_at_training_step()
 
         generator = self.storage.mini_batch_generator(self.num_mini_batches, self.num_learning_epochs)
-
         for policy_state_dict in generator:
             # Move everything to the device
             for policy_state_key in policy_state_dict.keys():

@@ -42,8 +42,7 @@ class LeggedAMP(BaseTask):
         self.is_evaluating = False
 
         # 加载运动序列
-        if config.env.reference_state_initialization:
-            self.amp_loader = AMPLoader(motion_cfg=config.robot.motion, num_envs=self.num_envs, device=self.device)
+        self.amp_loader = AMPLoader(config=config, num_envs=self.num_envs)
 
         self.init_done = True
 
@@ -518,8 +517,8 @@ class LeggedAMP(BaseTask):
             env_ids (List[int]): Environemnt ids
             frames: AMP frames to initialize motion with
         """
-        self.simulator.dof_pos[env_ids] = AMPLoader.get_joint_pose_batch(frames)
-        self.simulator.dof_vel[env_ids] = AMPLoader.get_joint_vel_batch(frames)
+        self.simulator.dof_pos[env_ids] = self.amp_loader.get_joint_pose_batch(frames).to(self.device)
+        self.simulator.dof_vel[env_ids] = self.amp_loader.get_joint_vel_batch(frames).to(self.device)
 
     def _reset_root_states_amp(self, env_ids, frames):
         """ Resets ROOT states position and velocities of selected environmments using AMP frames
@@ -528,16 +527,16 @@ class LeggedAMP(BaseTask):
             frames: AMP frames to initialize motion with
         """
         # base position
-        root_pos = AMPLoader.get_root_pos_batch(frames)
+        root_pos = self.amp_loader.get_root_trans_offset_batch(frames).to(self.device)
         root_pos[:, :2] = root_pos[:, :2] + self.env_origins[env_ids, :2]
         self.simulator.robot_root_states[env_ids, :3] = root_pos
-        root_orn = AMPLoader.get_root_rot_batch(frames)
-        self.simulator.robot_root_states[env_ids, 3:7] = root_orn
-        self.simulator.robot_root_states[env_ids, 7:10] = quat_rotate(root_orn, AMPLoader.get_linear_vel_batch(frames))
-        self.simulator.robot_root_states[env_ids, 10:13] = quat_rotate(root_orn, AMPLoader.get_angular_vel_batch(frames))
+        root_rot = self.amp_loader.get_root_rot_batch(frames).to(self.device)
+        self.simulator.robot_root_states[env_ids, 3:7] = root_rot
+        self.simulator.robot_root_states[env_ids, 7:10] = quat_rotate(root_rot, self.amp_loader.get_linear_vel_batch(frames).to(self.device))
+        self.simulator.robot_root_states[env_ids, 10:13] = quat_rotate(root_rot, self.amp_loader.get_angular_vel_batch(frames).to(self.device))
 
     def _reset_robot_states_callback(self, env_ids):
-        frames = self.amp_loader.get_full_frame(len(env_ids))
+        frames = self.amp_loader.get_full_frame_batch(len(env_ids))
         self._reset_dofs_amp(env_ids, frames)
         self._reset_root_states_amp(env_ids, frames)
 
@@ -1023,6 +1022,10 @@ class LeggedAMP(BaseTask):
         # print("foot slippage", rew, '| foot_vel', torch.norm(foot_vel, dim=-1) * (torch.norm(self.simulator.contact_forces[:, self.feet_indices, :], dim=-1) > 1.))
         return rew
 
+    def _reward_penalty_feet_contact_forces(self):
+        # penalize high contact forces
+        return torch.sum((torch.norm(self.simulator.contact_forces[:, self.feet_indices, :], dim=-1) -  self.config.rewards.locomotion_max_contact_force).clip(min=0.), dim=1)
+
     def _reward_feet_max_height_for_this_air(self):
         contact = self.simulator.contact_forces[:, self.feet_indices, 2] > 1.
         contact_filt = torch.logical_or(contact, self.last_contacts) 
@@ -1034,6 +1037,20 @@ class LeggedAMP(BaseTask):
         rew_feet_max_height = torch.sum((torch.clamp_min(self.config.rewards.desired_feet_max_height_for_this_air - self.feet_air_max_height, 0)) * from_air_to_contact, dim=1) # reward only on first contact with the ground
         self.feet_air_max_height *= ~contact_filt
         return rew_feet_max_height
+
+    def _reward_feet_air_time(self):
+        # Reward long steps
+        # Need to filter the contacts because the contact reporting of PhysX is unreliable on meshes
+        contact = self.simulator.contact_forces[:, self.feet_indices, 2] > 1.
+        contact_filt = torch.logical_or(contact, self.last_contacts) 
+        self.last_contacts = contact
+        first_contact = (self.feet_air_time > 0.) * contact_filt
+        self.feet_air_time += self.dt
+        rew_airTime = torch.sum((self.feet_air_time - self.config.rewards.desired_feet_air_time) * first_contact, dim=1) # reward only on first contact with the ground
+        # rew_airTime *= torch.norm(self.commands[:, :2], dim=1) > 0.1 #no reward for zero command
+        self.feet_air_time *= ~contact_filt
+        # print("Rew air time: ", rew_airTime)
+        return rew_airTime
     
     def _reward_feet_heading_alignment(self):
         left_quat = self.simulator._rigid_body_rot[:, self.feet_indices[0]]
@@ -1092,7 +1109,11 @@ class LeggedAMP(BaseTask):
     def _reward_collision(self):
         # Penalize collisions on selected bodies
         return torch.sum(1.*(torch.norm(self.simulator.contact_forces[:, self.penalised_contact_indices, :], dim=-1) > 0.1), dim=1)
-    
+
+    def _reward_penalty_stumble(self):
+        # Penalize feet hitting vertical surfaces
+        return torch.any(torch.norm(self.simulator.contact_forces[:, self.feet_indices, :2], dim=2) >\
+             5 *torch.abs(self.simulator.contact_forces[:, self.feet_indices, 2]), dim=1)
 
     def _push_robots(self, env_ids):
         """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity. 
@@ -1175,7 +1196,7 @@ class LeggedAMP(BaseTask):
             history_tensor = history_tensor.reshape(history_tensor.shape[0], -1)  # Shape: [4096, history_length*obs_dim]
             history_tensors.append(history_tensor)
         return torch.cat(history_tensors, dim=1)
-    
+        
     def _get_obs_short_history(self,):
         assert "short_history" in self.config.obs.obs_auxiliary.keys()
         history_config = self.config.obs.obs_auxiliary['short_history']
@@ -1197,6 +1218,30 @@ class LeggedAMP(BaseTask):
             history_length = history_config[key]
             history_tensor = self.history_handler.query(key)[:, :history_length]
             history_tensor = history_tensor.reshape(history_tensor.shape[0], -1)  # Shape: [4096, history_length*obs_dim]
+            history_tensors.append(history_tensor)
+        return torch.cat(history_tensors, dim=1)
+
+    def _get_obs_history_actor(self,):
+        assert "history_actor" in self.config.obs.obs_auxiliary.keys()
+        history_config = self.config.obs.obs_auxiliary['history_actor']
+        history_key_list = history_config.keys()
+        history_tensors = []
+        for key in sorted(history_config.keys()):
+            history_length = history_config[key]
+            history_tensor = self.history_handler.query(key)[:, :history_length]
+            history_tensor = history_tensor.reshape(history_tensor.shape[0], -1)  # Shape: [4096, history_length*obs_dim]
+            history_tensors.append(history_tensor)
+        return torch.cat(history_tensors, dim=1)
+    
+    def _get_obs_history_critic(self,):
+        assert "history_critic" in self.config.obs.obs_auxiliary.keys()
+        history_config = self.config.obs.obs_auxiliary['history_critic']
+        history_key_list = history_config.keys()
+        history_tensors = []
+        for key in sorted(history_config.keys()):
+            history_length = history_config[key]
+            history_tensor = self.history_handler.query(key)[:, :history_length]
+            history_tensor = history_tensor.reshape(history_tensor.shape[0], -1)
             history_tensors.append(history_tensor)
         return torch.cat(history_tensors, dim=1)
     

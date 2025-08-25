@@ -11,7 +11,7 @@ obs:
       dof_pos,
       dof_vel,
       actions,
-      ref_motion_phase,
+      # ref_motion_phase,
       # dif_local_rigid_body_pos,
       # local_ref_rigid_body_pos,
       # history,
@@ -25,9 +25,9 @@ obs:
       dof_pos,                   #23 
       dof_vel,                   #23 
       actions,                   #23 
-      ref_motion_phase,          #1  
-      dif_local_rigid_body_pos,  # 3 * num_bodies + 9
-      local_ref_rigid_body_pos,  # 3 * num_bodies + 9
+      # ref_motion_phase,          #1  
+      # dif_local_rigid_body_pos,  # 3 * num_bodies + 9
+      # local_ref_rigid_body_pos,  # 3 * num_bodies + 9
       dr_base_com,               #3
       dr_link_mass,              #from 22 to 22 # = num of 'randomize_link_body_names'
       dr_kp,                     #23
@@ -43,7 +43,6 @@ obs:
       projected_gravity,         #3
       dof_pos,                   #23 
       dof_vel,                   #23
-      history_discriminator,     # 55 * 2 = 110
     ]
 
   obs_auxiliary: # define those coumpounds in obs_dict, for example, you can define different long/short history with different length
@@ -54,7 +53,7 @@ obs:
       dof_pos: 4,
       dof_vel: 4,
       actions: 4,
-      ref_motion_phase: 4
+      # ref_motion_phase: 4
     }
 
     history_critic: {
@@ -64,16 +63,9 @@ obs:
       dof_pos: 4,
       dof_vel: 4,
       actions: 4,
-      ref_motion_phase: 4
+      # ref_motion_phase: 4
     }
 
-    history_discriminator: {
-      base_lin_vel: 2,
-      base_ang_vel: 2,
-      projected_gravity: 2,
-      dof_pos: 2,
-      dof_vel: 2,
-    }
 
   obs_scales: {
     base_lin_vel: 2.0,

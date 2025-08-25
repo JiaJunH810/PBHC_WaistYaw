@@ -1,0 +1,8 @@
+# @package _global_
+
+defaults:
+  # - /algo: ppo
+  - /algo: amp_ppo
+  - /env: legged_amp
+
+experiment_name: TEST_LeggedAMP
