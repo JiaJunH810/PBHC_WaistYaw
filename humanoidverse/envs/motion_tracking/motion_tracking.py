@@ -188,7 +188,9 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
             self._motion_lib.load_motions(random_sample=True)
 
         self.motion_ids = self._motion_lib._curr_motion_ids.to(self.device)
-        ref_init_state = self.kick_motion_res() ; self._kick_motion_res_counter = -1
+        ref_init_state = self.kick_motion_res() ; 
+        self._kick_motion_res_counter = -1
+        self._kick_motion_res_counter_multistep = -1
         self.ref_init_rpy = get_euler_xyz_in_tensor(ref_init_state['root_rot'][:1]) # [1,3]
         # breakpoint()
 
@@ -391,6 +393,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         else:
             self.motion_start_times[env_ids] = self._motion_lib.sample_time(self.motion_ids[env_ids])
         self._kick_motion_res_counter = -1
+        self._kick_motion_res_counter_multistep = -1
         # self.motion_start_times[env_ids] = self._motion_lib.sample_time(self.motion_ids[env_ids])
         # offset = self.env_origins
         # motion_times = (self.episode_length_buf ) * self.dt + self.motion_start_times # next frames so +1

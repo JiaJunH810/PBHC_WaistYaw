@@ -4,7 +4,6 @@ import torch
 from collections import defaultdict
 
 import numpy as np
-
 from isaac_utils.rotations import (
     quaternion_to_matrix,
     wxyz_to_xyzw,

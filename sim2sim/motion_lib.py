@@ -18,7 +18,7 @@ def to_torch(tensor):
 class MotionLib:
     def __init__(self, config, device):
         self.motion_config = config
-        self._sim_fps = 50
+        
         self._device = device
         skeleton_file = Path(self.motion_config.assetRoot) / self.motion_config.assetFileName
         self.skeleton_tree = SkeletonTree.from_mjcf(skeleton_file)
@@ -51,8 +51,6 @@ class MotionLib:
         self.root_vel = curr_motion.global_velocity_extend[..., 0, :].to(self._device)
         self.root_ang_vel = curr_motion.global_angular_velocity_extend[..., 0, :].to(self._device)
         self.dof_pos = curr_motion.dof_pos.to(self._device)
-
-        
         
 
     

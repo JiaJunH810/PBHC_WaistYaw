@@ -41,8 +41,8 @@ class HumanoidEnv:
         self.device = device
 
         self.sim_duration = 60.0
-        self.sim_dt = 0.005
-        self.sim_decimation = 4
+        self.sim_dt = 0.001
+        self.sim_decimation = 20
         self.control_dt = self.sim_dt * self.sim_decimation
 
         self.model = mujoco.MjModel.from_xml_path(model_path)
@@ -122,7 +122,7 @@ class HumanoidEnv:
 
             if i % self.sim_decimation == 0:
                 curr_timestep = i // self.sim_decimation
-                mimic_obs = self._get_mimic_obs(curr_timestep)
+                mimic_obs = self._get_mimic_obs(curr_timestep + 1)
 
                 ang_vel = torch.from_numpy(ang_vel).float().to(self.device)
 
@@ -148,7 +148,7 @@ class HumanoidEnv:
                 actions = torch.from_numpy(actions).to(self.device)
                 self.last_action = actions.clone()
 
-                target_pos = self.config.default_dof_pos
+                target_pos = actions * self.config.action_scale + self.config.default_dof_pos
 
                 self.viewer.cam.lookat = self.data.qpos.astype(np.float32)[:3]
                 self.viewer.render()
