@@ -1114,6 +1114,9 @@ class LeggedAMP(BaseTask):
         # Penalize feet hitting vertical surfaces
         return torch.any(torch.norm(self.simulator.contact_forces[:, self.feet_indices, :2], dim=2) >\
              5 *torch.abs(self.simulator.contact_forces[:, self.feet_indices, 2]), dim=1)
+    
+    ##### tracking rewards #####
+    
 
     def _push_robots(self, env_ids):
         """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity. 

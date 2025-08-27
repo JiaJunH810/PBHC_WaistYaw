@@ -172,7 +172,6 @@ class MotionLibBase():
 
         rb_rot0 = self.grs[f0l]
         rb_rot1 = self.grs[f1l]
-        rb_rot = slerp(rb_rot0, rb_rot1, blend_exp)
         return_dict = {}
         
         if "gts_t" in self.__dict__:

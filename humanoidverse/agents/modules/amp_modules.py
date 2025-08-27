@@ -10,9 +10,11 @@ from .modules import BaseModule
 
 # AMP Discriminator 网络
 class AMPDiscriminator(nn.Module):
-    def __init__(self, obs_dim_dict, module_config_dict):
+    def __init__(self, obs_dim_dict, module_config_dict, amp_reward_coef, task_reward_lerp):
         super().__init__()
         
+        self.amp_reward_coef = amp_reward_coef
+        self.task_reward_lerp = task_reward_lerp
         module_config_dict = self._process_module_config(obs_dim_dict, module_config_dict)
         
         self.discriminator_module = BaseModule(obs_dim_dict, module_config_dict)
@@ -59,6 +61,23 @@ class AMPDiscriminator(nn.Module):
         
         grad_pen = lambda_ * (grad.norm(2, dim=1) - 1).pow(2).mean()
         return grad_pen
+
+    def predict_amp_reward(self, amp_obs, amp_next_obs, task_rewards, normalizer=None):
+        if normalizer:
+            amp_obs = normalizer.normalize_torch(amp_obs)
+            amp_next_obs = normalizer.normalize_torch(amp_next_obs)
+        discriminator_input = torch.cat([amp_obs, amp_next_obs], dim=-1)
+        
+        with torch.no_grad():
+            logits = self.forward(discriminator_input)
+
+        style_reward = torch.clamp(1.0 - 0.25 * torch.square(logits - 1.0), min=0.0)
+        
+        #   final_reward = (1 - lerp) * style_reward + lerp * task_reward
+        combined_reward = ((1.0 - self.task_reward_lerp) * style_reward * self.amp_reward_coef +
+                           self.task_reward_lerp * task_rewards)
+        
+        return combined_reward
     
 class PPOActor(nn.Module):
     def __init__(self,

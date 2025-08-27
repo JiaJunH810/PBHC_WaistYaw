@@ -128,12 +128,13 @@ class AMPPPO(BaseAlgo):
         discriminator_kwargs = {
             "obs_dim_dict": self.algo_obs_dim_dict,
             "module_config_dict": self.config.module_dict.discriminator,
+            'amp_reward_coef': self.config.amp_reward_coef,
+            'task_reward_lerp': self.config.task_reward_lerp,
         }
         # Create discriminator
         self.discriminator = AMPDiscriminator(
             **discriminator_kwargs
         ).to(self.device)
-        
         # Create replay buffer for AMP
         self.amp_storage = AMPReplayBuffer(
             buffer_size=self.amp_replay_buffer_size,
@@ -363,6 +364,8 @@ class AMPPPO(BaseAlgo):
                 obs_dict, rewards, dones, infos = self.env.step(actor_state)
                 # 取下一个状态的AMP观察数据
                 amp_next_state_obs = self.get_amp_dict(obs_dict)
+                # 将所得奖励加上AMP给的奖励
+                rewards = self.discriminator.predict_amp_reward(amp_state_obs, amp_next_state_obs, rewards, normalizer=self.amp_normalizer)[0]
                 # critic_obs = privileged_obs if privileged_obs is not None else obs
                 # 为amp_storage添加数据
                 self.amp_storage.insert(amp_state_obs, amp_next_state_obs)

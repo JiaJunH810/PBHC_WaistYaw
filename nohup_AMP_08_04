@@ -1,0 +1,197 @@
+nohup: ignoring input
+Importing module 'gym_38' (/home/isaacgym/python/isaacgym/_bindings/linux-x86_64/gym_38.so)
+Setting GYM_USD_PLUG_INFO_PATH to /home/isaacgym/python/isaacgym/_bindings/linux-x86_64/usd/plugInfo.json
+[32m2025-08-27 09:38:39.841[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m58[0m - [1mobs_dims: {'base_lin_vel': 3, 'base_ang_vel': 3, 'projected_gravity': 3, 'dof_pos': 23, 'dof_vel': 23, 'actions': 23, 'dif_local_rigid_body_pos': 81, 'local_ref_rigid_body_pos': 81, 'ref_motion_phase': 1, 'dr_base_com': 3, 'dr_link_mass': 22, 'dr_kp': 23, 'dr_kd': 23, 'dr_friction': 1, 'dr_ctrl_delay': 1}[0m
+[32m2025-08-27 09:38:39.848[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m65[0m - [1mauxiliary_obs_dims: {'history_actor': 300, 'history_critic': 312}[0m
+[32m2025-08-27 09:38:39.849[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mactor_obs: base_ang_vel has dim: 3[0m
+[32m2025-08-27 09:38:39.850[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mactor_obs: projected_gravity has dim: 3[0m
+[32m2025-08-27 09:38:39.851[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mactor_obs: dof_pos has dim: 23[0m
+[32m2025-08-27 09:38:39.853[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mactor_obs: dof_vel has dim: 23[0m
+[32m2025-08-27 09:38:39.854[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mactor_obs: actions has dim: 23[0m
+[32m2025-08-27 09:38:39.854[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m75[0m - [1mactor_obs: history_actor has dim: 300[0m
+[32m2025-08-27 09:38:39.855[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: base_lin_vel has dim: 3[0m
+[32m2025-08-27 09:38:39.856[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: base_ang_vel has dim: 3[0m
+[32m2025-08-27 09:38:39.857[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: projected_gravity has dim: 3[0m
+[32m2025-08-27 09:38:39.858[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: dof_pos has dim: 23[0m
+[32m2025-08-27 09:38:39.859[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: dof_vel has dim: 23[0m
+[32m2025-08-27 09:38:39.860[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: actions has dim: 23[0m
+[32m2025-08-27 09:38:39.861[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: dr_base_com has dim: 3[0m
+[32m2025-08-27 09:38:39.862[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: dr_link_mass has dim: 22[0m
+[32m2025-08-27 09:38:39.863[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: dr_kp has dim: 23[0m
+[32m2025-08-27 09:38:39.864[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: dr_kd has dim: 23[0m
+[32m2025-08-27 09:38:39.865[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: dr_friction has dim: 1[0m
+[32m2025-08-27 09:38:39.866[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mcritic_obs: dr_ctrl_delay has dim: 1[0m
+[32m2025-08-27 09:38:39.866[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m75[0m - [1mcritic_obs: history_critic has dim: 312[0m
+[32m2025-08-27 09:38:39.867[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mdiscriminator_obs: base_lin_vel has dim: 3[0m
+[32m2025-08-27 09:38:39.868[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mdiscriminator_obs: base_ang_vel has dim: 3[0m
+[32m2025-08-27 09:38:39.869[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mdiscriminator_obs: projected_gravity has dim: 3[0m
+[32m2025-08-27 09:38:39.870[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mdiscriminator_obs: dof_pos has dim: 23[0m
+[32m2025-08-27 09:38:39.871[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m72[0m - [1mdiscriminator_obs: dof_vel has dim: 23[0m
+[32m2025-08-27 09:38:39.872[0m | [1mINFO    [0m | [36mhumanoidverse.utils.helpers[0m:[36mdetermine_obs_dim[0m:[36m79[0m - [1malgo_obs_dim_dict: {'actor_obs': 375, 'critic_obs': 463, 'discriminator_obs': 55}[0m
+obs_slices: {'actor_obs': {'actions': (0, 23), 'base_ang_vel': (23, 26), 'dof_pos': (26, 49), 'dof_vel': (49, 72), 'history_actor': (72, 372), 'projected_gravity': (372, 375)}, 'critic_obs': {'actions': (0, 23), 'base_ang_vel': (23, 26), 'base_lin_vel': (26, 29), 'dof_pos': (29, 52), 'dof_vel': (52, 75), 'dr_base_com': (75, 78), 'dr_ctrl_delay': (78, 79), 'dr_friction': (79, 80), 'dr_kd': (80, 103), 'dr_kp': (103, 126), 'dr_link_mass': (126, 148), 'history_critic': (148, 460), 'projected_gravity': (460, 463)}, 'discriminator_obs': {'base_ang_vel': (0, 3), 'base_lin_vel': (3, 6), 'dof_pos': (6, 29), 'dof_vel': (29, 52), 'projected_gravity': (52, 55)}}
+[2025-08-27 09:38:43,792][numexpr.utils][INFO] - Note: detected 256 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.
+[32m2025-08-27 09:38:43.792[0m | [1mINFO    [0m | [36mnumexpr.utils[0m:[36m_init_num_threads[0m:[36m145[0m - [1mNote: detected 256 virtual cores but NumExpr set to maximum of 64, check "NUMEXPR_MAX_THREADS" environment variable.[0m
+[2025-08-27 09:38:43,793][numexpr.utils][INFO] - Note: NumExpr detected 256 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+[32m2025-08-27 09:38:43.793[0m | [1mINFO    [0m | [36mnumexpr.utils[0m:[36m_init_num_threads[0m:[36m148[0m - [1mNote: NumExpr detected 256 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.[0m
+[32m2025-08-27 09:38:43.975[0m | [1mINFO    [0m | [36mhumanoidverse.utils.motion_lib.torch_humanoid_batch[0m:[36m<module>[0m:[36m41[0m - [1mUsing Humanoid Batch[0m
+PyTorch version 2.4.0+cu118
+Device count 1
+/home/isaacgym/python/isaacgym/_bindings/src/gymtorch
+Using /root/.cache/torch_extensions/py38_cu118 as PyTorch extensions root...
+Emitting ninja build file /root/.cache/torch_extensions/py38_cu118/gymtorch/build.ninja...
+Building extension module gymtorch...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Not connected to PVD
++++ Using GPU PhysX
+Physics Engine: PhysX
+Physics Device: cuda:0
+GPU Pipeline: enabled
+[32m2025-08-27 09:38:51.627[0m | [1mINFO    [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36msetup[0m:[36m65[0m - [1mCreating Sim...[0m
+[32m2025-08-27 09:38:51.629[0m | [1mINFO    [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36m_create_ground_plane[0m:[36m108[0m - [1mCreating plane terrain[0m
+[32m2025-08-27 09:38:51.630[0m | [1mINFO    [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36m_create_ground_plane[0m:[36m115[0m - [1mCreated plane terrain 	| static_friction: 1.00 	| dynamic_friction: 1.00 	| restitution: 0.00[0m
+[32m2025-08-27 09:38:58.489[0m | [33m[1mWARNING [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36m_process_rigid_shape_props[0m:[36m343[0m - [33m[1mNumber of rigid shapes does not match number of bodies[0m
+[32m2025-08-27 09:38:58.491[0m | [33m[1mWARNING [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36m_process_rigid_shape_props[0m:[36m344[0m - [33m[1mlen(RigidShapeProperties): 33[0m
+[32m2025-08-27 09:38:58.491[0m | [33m[1mWARNING [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36m_process_rigid_shape_props[0m:[36m345[0m - [33m[1mself.num_bodies: 24[0m
+[32m2025-08-27 09:38:58.524[0m | [33m[1mWARNING [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36m_process_rigid_shape_props[0m:[36m343[0m - [33m[1mNumber of rigid shapes does not match number of bodies[0m
+[32m2025-08-27 09:38:58.524[0m | [33m[1mWARNING [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36m_process_rigid_shape_props[0m:[36m344[0m - [33m[1mlen(RigidShapeProperties): 33[0m
+[32m2025-08-27 09:38:58.524[0m | [33m[1mWARNING [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36m_process_rigid_shape_props[0m:[36m345[0m - [33m[1mself.num_bodies: 24[0m
+[32m2025-08-27 09:38:58.535[0m | [33m[1mWARNING [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36m_process_rigid_shape_props[0m:[36m343[0m - [33m[1mNumber of rigid shapes does not match number of bodies[0m
+[32m2025-08-27 09:38:58.536[0m | [33m[1mWARNING [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36m_process_rigid_shape_props[0m:[36m344[0m - [33m[1mlen(RigidShapeProperties): 33[0m
+[32m2025-08-27 09:38:58.536[0m | [33m[1mWARNING [0m | [36mhumanoidverse.simulator.isaacgym.isaacgym[0m:[36m_process_rigid_shape_props[0m:[36m345[0m - [33m[1mself.num_bodies: 24[0m
+[32m2025-08-27 09:39:38.453[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m166[0m - [1mJiaqi set reward on 20250822[0m
+[32m2025-08-27 09:39:38.454[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: penalty_torques = -1e-06[0m
+[32m2025-08-27 09:39:38.454[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: penalty_dof_vel = -0.0001[0m
+[32m2025-08-27 09:39:38.454[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: penalty_dof_acc = -2.5e-08[0m
+[32m2025-08-27 09:39:38.454[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: penalty_action_rate = -0.3[0m
+[32m2025-08-27 09:39:38.454[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: feet_air_time = 1.2[0m
+[32m2025-08-27 09:39:38.454[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: penalty_feet_contact_forces = -0.01[0m
+[32m2025-08-27 09:39:38.455[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: penalty_orientation = -3.0[0m
+[32m2025-08-27 09:39:38.455[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: penalty_stumble = -2.0[0m
+[32m2025-08-27 09:39:38.455[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: penalty_slippage = -3.0[0m
+[32m2025-08-27 09:39:38.455[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: feet_heading_alignment_contact = -0.1[0m
+[32m2025-08-27 09:39:38.455[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: limits_dof_pos = -20.0[0m
+[32m2025-08-27 09:39:38.455[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: limits_dof_vel = -10.0[0m
+[32m2025-08-27 09:39:38.456[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: limits_torque = -5.0[0m
+[32m2025-08-27 09:39:38.456[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: termination = -200.0[0m
+[32m2025-08-27 09:39:38.456[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: collision = -30.0[0m
+[32m2025-08-27 09:39:38.456[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m171[0m - [1mScale: penalty_com_offset = -5.0[0m
+[32m2025-08-27 09:39:38.456[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m182[0m - [1mUse Reward Penalty: True[0m
+[32m2025-08-27 09:39:38.456[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m184[0m - [1mPenalty Reward Names: ['penalty_torques', 'penalty_dof_acc', 'penalty_dof_vel', 'penalty_action_rate', 'limits_dof_pos', 'limits_dof_vel', 'limits_torque', 'feet_heading_alignment', 'penalty_feet_ori', 'penalty_slippage', 'collision', 'penalty_com_offset'][0m
+[32m2025-08-27 09:39:38.456[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m185[0m - [1mPenalty Reward Initial Scale: 0.1[0m
+[32m2025-08-27 09:39:38.457[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m192[0m - [1mUse Reward Limits DOF Curriculum: True[0m
+[32m2025-08-27 09:39:38.457[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m193[0m - [1mReward Limits DOF Curriculum Initial Limit: 0.95[0m
+[32m2025-08-27 09:39:38.457[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m194[0m - [1mReward Limits DOF Curriculum Max Limit: 0.95[0m
+[32m2025-08-27 09:39:38.457[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m195[0m - [1mReward Limits DOF Curriculum Min Limit: 0.95[0m
+[32m2025-08-27 09:39:38.457[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m199[0m - [1mUse Reward Limits DOF Vel Curriculum: True[0m
+[32m2025-08-27 09:39:38.457[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m200[0m - [1mReward Limits DOF Vel Curriculum Initial Limit: 0.95[0m
+[32m2025-08-27 09:39:38.457[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m201[0m - [1mReward Limits DOF Vel Curriculum Max Limit: 0.95[0m
+[32m2025-08-27 09:39:38.457[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m202[0m - [1mReward Limits DOF Vel Curriculum Min Limit: 0.95[0m
+[32m2025-08-27 09:39:38.458[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m206[0m - [1mUse Reward Limits Torque Curriculum: True[0m
+[32m2025-08-27 09:39:38.458[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m207[0m - [1mReward Limits Torque Curriculum Initial Limit: 0.85[0m
+[32m2025-08-27 09:39:38.458[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m208[0m - [1mReward Limits Torque Curriculum Max Limit: 0.85[0m
+[32m2025-08-27 09:39:38.458[0m | [1mINFO    [0m | [36mhumanoidverse.envs.legged_amp.legged_amp[0m:[36m_prepare_reward_function[0m:[36m209[0m - [1mReward Limits Torque Curriculum Min Limit: 0.85[0m
+[32m2025-08-27 09:39:38.461[0m | [1mINFO    [0m | [36mhumanoidverse.envs.env_utils.history_handler[0m:[36m__init__[0m:[36m29[0m - [1mHistory Handler Initialized[0m
+[32m2025-08-27 09:39:38.461[0m | [1mINFO    [0m | [36mhumanoidverse.envs.env_utils.history_handler[0m:[36m__init__[0m:[36m31[0m - [1mKey: base_ang_vel, Value: 4[0m
+[32m2025-08-27 09:39:38.461[0m | [1mINFO    [0m | [36mhumanoidverse.envs.env_utils.history_handler[0m:[36m__init__[0m:[36m31[0m - [1mKey: projected_gravity, Value: 4[0m
+[32m2025-08-27 09:39:38.462[0m | [1mINFO    [0m | [36mhumanoidverse.envs.env_utils.history_handler[0m:[36m__init__[0m:[36m31[0m - [1mKey: dof_pos, Value: 4[0m
+[32m2025-08-27 09:39:38.462[0m | [1mINFO    [0m | [36mhumanoidverse.envs.env_utils.history_handler[0m:[36m__init__[0m:[36m31[0m - [1mKey: dof_vel, Value: 4[0m
+[32m2025-08-27 09:39:38.462[0m | [1mINFO    [0m | [36mhumanoidverse.envs.env_utils.history_handler[0m:[36m__init__[0m:[36m31[0m - [1mKey: actions, Value: 4[0m
+[32m2025-08-27 09:39:38.462[0m | [1mINFO    [0m | [36mhumanoidverse.envs.env_utils.history_handler[0m:[36m__init__[0m:[36m31[0m - [1mKey: base_lin_vel, Value: 4[0m
+Loading Meshes ... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+Loading Geoms... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+[32m2025-08-27 09:39:39.088[0m | [1mINFO    [0m | [36m__main__[0m:[36mmain[0m:[36m102[0m - [1mSaving config file to logs/AMP/20250827_093837-08_04_poses-legged_base-g1_23dof[0m
+[32m2025-08-27 09:39:46.751[0m | [1mINFO    [0m | [36mhumanoidverse.agents.amp_ppo.amp_ppo[0m:[36msetup[0m:[36m110[0m - [1mSetting up AMP-PPO[0m
+PPOActor(
+  (actor_module): BaseModule(
+    (module): Sequential(
+      (0): Linear(in_features=375, out_features=512, bias=True)
+      (1): ELU(alpha=1.0)
+      (2): Linear(in_features=512, out_features=256, bias=True)
+      (3): ELU(alpha=1.0)
+      (4): Linear(in_features=256, out_features=128, bias=True)
+      (5): ELU(alpha=1.0)
+      (6): Linear(in_features=128, out_features=23, bias=True)
+    )
+  )
+)
+PPOCritic(
+  (critic_module): BaseModule(
+    (module): Sequential(
+      (0): Linear(in_features=463, out_features=768, bias=True)
+      (1): ELU(alpha=1.0)
+      (2): Linear(in_features=768, out_features=512, bias=True)
+      (3): ELU(alpha=1.0)
+      (4): Linear(in_features=512, out_features=128, bias=True)
+      (5): ELU(alpha=1.0)
+      (6): Linear(in_features=128, out_features=1, bias=True)
+    )
+  )
+)
+[32m2025-08-27 09:39:47.521[0m | [1mINFO    [0m | [36mhumanoidverse.agents.amp_ppo.amp_ppo[0m:[36msetup[0m:[36m113[0m - [1mSetting up Storage[0m
+AMPDiscriminator(
+  (discriminator_module): BaseModule(
+    (module): Sequential(
+      (0): Linear(in_features=110, out_features=1024, bias=True)
+      (1): ELU(alpha=1.0)
+      (2): Linear(in_features=1024, out_features=512, bias=True)
+      (3): ELU(alpha=1.0)
+      (4): Linear(in_features=512, out_features=1, bias=True)
+    )
+  )
+)
+╭──────────────────────────────── Training Log ────────────────────────────────╮
+│                      [1m Learning iteration 0/1000000 [0m                    │
+│                                                                              │
+│                             Computation: 14228 steps/s                       │
+│                   Mean action noise std:     0.8035                          │
+│                             Mean reward:    22.9683                          │
+│                     Mean episode length:    24.0000                          │
+│                        action_clip_frac:     0.0000                          │
+│                    terminate_by_gravity:     0.4167                          │
+│                   terminate_by_time_out:     0.0000                          │
+│                           penalty_scale:     0.1000                          │
+│                  average_episode_length:     0.5753                          │
+│           soft_dof_pos_curriculum_value:     0.9500                          │
+│           soft_dof_vel_curriculum_value:     0.9500                          │
+│            soft_torque_curriculum_value:     0.8500                          │
+│ ---------------------------------------------------------------------------- │
+│ ----                                                                         │
+│                     rew_penalty_torques:    -0.0005                          │
+│                     rew_penalty_dof_vel:    -0.0383                          │
+│                     rew_penalty_dof_acc:    -0.0238                          │
+│                 rew_penalty_action_rate:    -0.0112                          │
+│                       rew_feet_air_time:    -0.0005                          │
+│         rew_penalty_feet_contact_forces:    -0.0918                          │
+│                 rew_penalty_orientation:    -0.0174                          │
+│                     rew_penalty_stumble:    -0.0000                          │
+│                    rew_penalty_slippage:    -0.1384                          │
+│      rew_feet_heading_alignment_contact:    -0.0027                          │
+│                      rew_limits_dof_pos:    -0.1497                          │
+│                      rew_limits_dof_vel:    -1.9911                          │
+│                       rew_limits_torque:    -1.4192                          │
+│                         rew_termination:    -0.1216                          │
+│                           rew_collision:    -0.0185                          │
+│                  rew_penalty_com_offset:    -0.0024                          │
+│                               rew_total:    -4.0270                          │
+│ Note: reward computed per step                                               │
+│ ---------------------------------------------------------------------------- │
+│ ----                                                                         │
+│                         Total timesteps: 98304                               │
+│                         Collection time:     1.9761s                         │
+│                           Learning time:     4.9328s                         │
+│                          Iteration time:     6.9089s                         │
+│                              Total time:     6.9089s                         │
+│                                     ETA: 6908894.7773s                       │
+│                                Time Now: 2025-08-27 09:39:54                 │
+│ Logging Directory: logs/AMP/20250827_093837-08_04_poses-legged_base-g1_23dof │
+╰──────────────────────────────────────────────────────────────────────────────╯[32m2025-08-27 09:39:54.593[0m | [1mINFO    [0m | [36mhumanoidverse.agents.amp_ppo.amp_ppo[0m:[36msave[0m:[36m242[0m - [1mSaving checkpoint to logs/AMP/20250827_093837-08_04_poses-legged_base-g1_23dof/model_0.pt[0m
+[32m2025-08-27 09:39:54.630[0m | [1mINFO    [0m | [36mhumanoidverse.agents.amp_ppo.amp_ppo[0m:[36msave[0m:[36m242[0m - [1mSaving checkpoint to logs/AMP/20250827_093837-08_04_poses-legged_base-g1_23dof/best_reward.pt[0m
+[32m2025-08-27 09:39:54.660[0m | [1mINFO    [0m | [36mhumanoidverse.agents.amp_ppo.amp_ppo[0m:[36msave[0m:[36m242[0m - [1mSaving checkpoint to logs/AMP/20250827_093837-08_04_poses-legged_base-g1_23dof/best_episode.pt[0m
+[32m2025-08-27 09:39:54.690[0m | [1mINFO    [0m | [36mhumanoidverse.agents.amp_ppo.amp_ppo[0m:[36msave[0m:[36m242[0m - [1mSaving checkpoint to logs/AMP/20250827_093837-08_04_poses-legged_base-g1_23dof/combine_reward_episode.pt[0m
+
+----------   Max_Mean_Reward_0: 22.968315773010254, max_Mean_Reward_to_episode_length: 24.0   ----------
+----------   Max_Mean_Episode_0: 24.0, max_Mean_episode_length_to_reward: 22.968315773010254   ----------
+--------------------   Combine_Episode_Reward_0: 25.368315773010252   --------------------
+[32m2025-08-27 09:39:57.492[0m | [1mINFO    [0m | [36mhumanoidverse.agents.amp_ppo.amp_ppo[0m:[36msave[0m:[36m242[0m - [1mSaving checkpoint to logs/AMP/20250827_093837-08_04_poses-legged_base-g1_23dof/best_episode.pt[0m
+[32m2025-08-27 09:40:00.463[0m | [1mINFO    [0m | [36mhumanoidverse.agents.amp_ppo.amp_ppo[0m:[36msave[0m:[36m242[0m - [1mSaving checkpoint to logs/AMP/20250827_093837-08_04_poses-legged_base-g1_23dof/best_episode.pt[0m

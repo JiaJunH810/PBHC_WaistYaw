@@ -211,7 +211,6 @@ def slerp(q0, q1, t):
     # type: (Tensor, Tensor, Tensor) -> Tensor
     # 这个code对xyzw和wxyz都适用, 只要 q0和q1的顺序一致
     cos_half_theta = torch.sum(q0 * q1, dim=-1)
-
     neg_mask = cos_half_theta < 0
     q1 = q1.clone()
     q1[neg_mask] = -q1[neg_mask]
