@@ -10,10 +10,10 @@ from .modules import BaseModule
 
 # AMP Discriminator 网络
 class AMPDiscriminator(nn.Module):
-    def __init__(self, obs_dim_dict, module_config_dict, amp_reward_coef, task_reward_lerp):
+    def __init__(self, obs_dim_dict, module_config_dict, amp_reward_scale, task_reward_lerp):
         super().__init__()
         
-        self.amp_reward_coef = amp_reward_coef
+        self.amp_reward_scale = amp_reward_scale
         self.task_reward_lerp = task_reward_lerp
         module_config_dict = self._process_module_config(obs_dim_dict, module_config_dict)
         
@@ -74,7 +74,7 @@ class AMPDiscriminator(nn.Module):
         style_reward = torch.clamp(1.0 - 0.25 * torch.square(logits - 1.0), min=0.0)
         
         #   final_reward = (1 - lerp) * style_reward + lerp * task_reward
-        combined_reward = ((1.0 - self.task_reward_lerp) * style_reward * self.amp_reward_coef +
+        combined_reward = ((1.0 - self.task_reward_lerp) * style_reward * self.amp_reward_scale +
                            self.task_reward_lerp * task_rewards)
         
         return combined_reward

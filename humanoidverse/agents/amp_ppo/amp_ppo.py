@@ -128,7 +128,7 @@ class AMPPPO(BaseAlgo):
         discriminator_kwargs = {
             "obs_dim_dict": self.algo_obs_dim_dict,
             "module_config_dict": self.config.module_dict.discriminator,
-            'amp_reward_coef': self.config.amp_reward_coef,
+            'amp_reward_scale': self.config.amp_reward_scale,
             'task_reward_lerp': self.config.task_reward_lerp,
         }
         # Create discriminator

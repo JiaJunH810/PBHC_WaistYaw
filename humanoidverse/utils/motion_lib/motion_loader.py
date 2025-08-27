@@ -170,7 +170,7 @@ class AMPLoader:
         batch_obs = []
         obs_scales = self.config.obs.obs_scales
         # print(obs_scales)
-        for key in self.config.obs.obs_dict.discriminator_obs:
+        for key in sorted(self.config.obs.obs_dict.discriminator_obs):
             batch_obs.append(frame[key] * obs_scales[key])
         batch_obs_tensor = torch.cat(batch_obs, dim=0)
         return batch_obs_tensor
@@ -179,10 +179,8 @@ class AMPLoader:
         batch_obs = []
         obs_scales = self.config.obs.obs_scales
         
-        for key in self.config.obs.obs_dict.discriminator_obs:
-            # 对于每个键，检查它是否在帧数据中
+        for key in sorted(self.config.obs.obs_dict.discriminator_obs):
             if key in frames:
-                # 应用缩放因子并添加到批次观测中
                 scaled_obs = frames[key] * obs_scales[key]
                 batch_obs.append(scaled_obs)
         
