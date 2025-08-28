@@ -586,7 +586,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         buffer = {}
 
         for i in range(len(self.tar_obs_steps)):
-            motion_times = (self.episode_length_buf + self.tar_obs_steps[i] + 1) * self.dt + self.motion_start_times
+            motion_times = (self.episode_length_buf + self.tar_obs_steps[i]) * self.dt + self.motion_start_times
             offset = self.env_origins
             motion_res = self._motion_lib.get_motion_state(self.motion_ids, motion_times, offset)
             for key, value in motion_res.items():

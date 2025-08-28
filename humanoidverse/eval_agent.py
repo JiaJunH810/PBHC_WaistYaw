@@ -152,6 +152,7 @@ def main(override_config: OmegaConf):
     config.env.config.save_rendering_dir = str(checkpoint.parent / "renderings" / f"ckpt_{ckpt_num}")
     config.env.config.ckpt_dir = str(checkpoint.parent) # commented out for now, might need it back to save motion
     env = instantiate(config.env, device=device)
+    env.set_is_evaluating()
 
     # Start a thread to listen for key press
     key_listener_thread = threading.Thread(target=listen_for_keypress, args=(env,))
