@@ -43,8 +43,33 @@ class LeggedAMP(BaseTask):
 
         # 加载运动序列
         self.amp_loader = AMPLoader(config=config, num_envs=self.num_envs)
+        self._init_motion_tracking()
 
         self.init_done = True
+
+    def _init_motion_tracking(self):
+        """初始化运动跟踪相关的变量"""
+        # 运动ID和时间
+        self.motion_ids = torch.zeros(self.num_envs, dtype=torch.int64).to(self.device)
+        # 当前环境的当前运动时间
+        self.motion_times = torch.zeros(self.num_envs, dtype=torch.float32, device=self.device)
+        # 当前环境的运动序列的总时间
+        self.motion_lengths = self.amp_loader.trajectory_lens[self.motion_ids]
+        self.motion_frame_durations = self.amp_loader.trajectory_frame_durations[self.motion_ids]
+        # 参考状态缓冲区
+        self.ref_dof_pos = torch.zeros(self.num_envs, self.num_dof, device=self.device)
+        self.ref_dof_vel = torch.zeros(self.num_envs, self.num_dof, device=self.device)
+        self.ref_root_pos = torch.zeros(self.num_envs, 3, device=self.device)
+        self.ref_root_rot = torch.zeros(self.num_envs, 4, device=self.device)
+        self.ref_root_vel = torch.zeros(self.num_envs, 3, device=self.device)
+        self.ref_root_ang_vel = torch.zeros(self.num_envs, 3, device=self.device)
+        
+        # 差异缓冲区
+        self.dif_dof_pos = torch.zeros(self.num_envs, self.num_dof, device=self.device)
+        self.dif_dof_vel = torch.zeros(self.num_envs, self.num_dof, device=self.device)
+        self.dif_root_pos = torch.zeros(self.num_envs, 3, device=self.device)
+        
+
 
     def _init_buffers(self):
         """ Initialize torch tensors which will contain simulation states and processed quantities
@@ -348,6 +373,15 @@ class LeggedAMP(BaseTask):
         self.contacts = ( self.simulator.contact_forces[:, self.feet_indices, :].norm(dim=-1) > 1.).float()
         self.contacts_filt = torch.logical_or(self.contacts, self.last_contacts).float()
         
+        
+        self._update_reference_states()
+        self.motion_times += self.motion_frame_durations
+        
+        # 计算差异
+        self.dif_dof_pos = self.ref_dof_pos - self.simulator.dof_pos
+        self.dif_dof_vel = self.ref_dof_vel - self.simulator.dof_vel
+        self.dif_root_pos = self.ref_root_pos - self.simulator.robot_root_states[:, :3]
+        
         # Noise Observation
         if self.use_noise_process:
             step_noise_process = self.noise_process.step()
@@ -373,6 +407,22 @@ class LeggedAMP(BaseTask):
             self.projected_gravity_noise = self.projected_gravity
             self.dof_pos_noise = self.simulator.dof_pos
             self.dof_vel_noise = self.simulator.dof_vel
+
+    def _update_reference_states(self):
+        """更新参考状态"""
+        # 使用AMPLoader获取参考状态
+        ref_states = self.amp_loader.get_full_frame_at_time_batch(self.motion_ids, self.motion_times)
+        
+        # 提取参考状态
+        self.ref_dof_pos = ref_states['dof_pos']
+        self.ref_dof_vel = ref_states['dof_vel']
+        self.ref_root_pos = ref_states['root_trans_offset']
+        self.ref_root_rot = ref_states['root_rot']
+        self.ref_root_vel = ref_states['base_lin_vel']
+        self.ref_root_ang_vel = ref_states['base_ang_vel']
+        
+        # 将根位置添加到环境原点
+        self.ref_root_pos[:, :2] += self.env_origins[:, :2]
 
     def _update_tasks_callback(self):
         if self.config.domain_rand.push_robots:
@@ -482,6 +532,9 @@ class LeggedAMP(BaseTask):
         
         # self.log_dict["terminate_by_time_out"] = self.time_out_buf.float().mean()
         self.reset_buf_terminate_by["time_out"] = self.time_out_buf
+        if self.config.termination.terminate_when_motion_end:
+            self.reset_buf_terminate_by["motion_end"] = self.motion_times + self.motion_frame_durations > self.motion_lengths
+            self.time_out_buf |= self.reset_buf_terminate_by["motion_end"]
 
     def reset_envs_idx(self, env_ids, target_states=None, target_buf=None):
         """ Reset some environments.
@@ -536,7 +589,9 @@ class LeggedAMP(BaseTask):
         self.simulator.robot_root_states[env_ids, 10:13] = quat_rotate(root_rot, self.amp_loader.get_angular_vel_batch(frames).to(self.device))
 
     def _reset_robot_states_callback(self, env_ids):
-        frames = self.amp_loader.get_full_frame_batch(len(env_ids))
+        traj_idxs, times, frames = self.amp_loader.get_full_frame_batch(len(env_ids))
+        self.motion_ids[env_ids] = traj_idxs
+        self.motion_times[env_ids] = times
         self._reset_dofs_amp(env_ids, frames)
         self._reset_root_states_amp(env_ids, frames)
 
@@ -1116,7 +1171,29 @@ class LeggedAMP(BaseTask):
              5 *torch.abs(self.simulator.contact_forces[:, self.feet_indices, 2]), dim=1)
     
     ##### tracking rewards #####
-    
+    # 根节点位置追踪
+    def _reward_teleop_root_position(self):
+        root_diff = self.dif_root_pos
+        root_dist = (root_diff**2).mean(dim=-1)
+        r_root = torch.exp(-root_dist / self.config.rewards.reward_tracking_sigma.teleop_root_pos)
+
+        return r_root
+
+    # 关节位置跟踪
+    def _reward_teleop_joint_position(self):
+        joint_pos_diff = self.dif_dof_pos
+        diff_joint_pos_dist = (joint_pos_diff**2).mean(dim=-1)
+        
+        r_joint_pos = torch.exp(-diff_joint_pos_dist / self.config.rewards.reward_tracking_sigma.teleop_joint_pos)
+
+        return r_joint_pos
+
+    def _reward_teleop_joint_velocity(self):
+        joint_vel_diff = self.dif_dof_vel
+        diff_joint_vel_dist = (joint_vel_diff**2).mean(dim=-1)
+        r_joint_vel = torch.exp(-diff_joint_vel_dist / self.config.rewards.reward_tracking_sigma.teleop_joint_vel)
+        
+        return r_joint_vel
 
     def _push_robots(self, env_ids):
         """ Random pushes the robots. Emulates an impulse by setting a randomized base velocity. 

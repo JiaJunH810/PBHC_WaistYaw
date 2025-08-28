@@ -92,12 +92,12 @@ class AMPLoader:
         return torch.randint(0, len(self.trajectory_idxs), (size,), device=self.device)
 
     def traj_time_sample(self, traj_idx):
-        subst = self.trajectory_frame_durations[traj_idx]
+        subst = self.trajectory_frame_durations[traj_idx] * 2
         traj_len = self.trajectory_lens[traj_idx]
         return max(0, traj_len * torch.rand(size=(1,), device=self.device) - subst)
 
     def traj_time_sample_batch(self, traj_idxs):
-        subst = self.trajectory_frame_durations[traj_idxs]
+        subst = self.trajectory_frame_durations[traj_idxs] * 2
         traj_lens = self.trajectory_lens[traj_idxs]
         time_samples = traj_lens * torch.rand(size=(len(traj_idxs),), device=self.device) - subst
         return torch.clamp_min(time_samples, min=0.0)
@@ -117,7 +117,7 @@ class AMPLoader:
 
     def get_full_frame_at_time_batch(self, traj_idxs, times):
         starts = self.traj_start_offsets[traj_idxs]
-        n = self.trajectory_num_frames[traj_idxs].float()
+        n = self.trajectory_num_frames[traj_idxs]
         T = self.trajectory_lens[traj_idxs]
         p = times / T
         idx_low = torch.floor(p * n).int()
@@ -196,7 +196,7 @@ class AMPLoader:
     def get_full_frame_batch(self, num_frames):
         traj_idxs = self.weighted_traj_idx_sample_batch(num_frames)
         times = self.traj_time_sample_batch(traj_idxs)
-        return self.get_full_frame_at_time_batch(traj_idxs, times)
+        return traj_idxs, times, self.get_full_frame_at_time_batch(traj_idxs, times)
 
     def feed_forward_generator(self, num_mini_batch, mini_batch_size):
         for _ in range(num_mini_batch):

@@ -9,6 +9,9 @@ rewards:
   set_reward_date: 20250822
   only_positive_rewards: False
   reward_scales:
+      teleop_root_position: 2.0
+      teleop_joint_position: 2.0
+      teleop_joint_velocity: 2.0
       penalty_torques: -0.000001
       penalty_dof_vel: -0.0001
       penalty_dof_acc: -2.5e-8
@@ -30,6 +33,12 @@ rewards:
       
   
   desired_feet_max_height_for_this_air: 0.2
+
+  reward_tracking_sigma:
+    teleop_root_pos: 0.02
+    teleop_joint_pos: 0.3
+    teleop_joint_vel: 30.0
+
   locomotion_max_contact_force: 400.0
   desired_feet_air_time: 0.3
 

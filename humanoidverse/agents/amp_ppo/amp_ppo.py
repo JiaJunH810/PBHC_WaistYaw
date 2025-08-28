@@ -547,9 +547,11 @@ class AMPPPO(BaseAlgo):
         policy_d = self.discriminator(torch.cat([policy_state, policy_next_state], dim=-1))
         expert_d = self.discriminator(torch.cat([expert_state, expert_next_state], dim=-1))
         
+        criterion = torch.nn.BCEWithLogitsLoss()
+
         # Compute AMP losses
-        expert_loss = torch.nn.MSELoss()(expert_d, torch.ones(expert_d.size(), device=self.device))
-        policy_loss = torch.nn.MSELoss()(policy_d, -1 * torch.ones(policy_d.size(), device=self.device))
+        expert_loss = criterion(expert_d, torch.ones(expert_d.size(), device=self.device))
+        policy_loss = criterion(policy_d, torch.zeros(policy_d.size(), device=self.device))
         amp_loss = 0.5 * (expert_loss + policy_loss)
         
         # Compute gradient penalty
@@ -565,10 +567,13 @@ class AMPPPO(BaseAlgo):
         self.discriminator_optimizer.step()
         
         # Update loss dictionary
+        policy_probs = torch.sigmoid(policy_d)
+        expert_probs = torch.sigmoid(expert_d)
+        
         loss_dict['AMP'] += amp_loss.item()
         loss_dict['GradPen'] += grad_pen_loss.item()
-        loss_dict['PolicyPred'] += policy_d.mean().item()
-        loss_dict['ExpertPred'] += expert_d.mean().item()
+        loss_dict['PolicyPred'] += policy_probs.mean().item()
+        loss_dict['ExpertPred'] += expert_probs.mean().item()
         
         # Update normalizer if using it
         if self.amp_normalizer is not None:

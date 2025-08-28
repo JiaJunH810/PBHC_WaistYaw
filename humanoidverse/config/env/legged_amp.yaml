@@ -32,6 +32,7 @@ env:
       terminate_when_close_to_torque_limit: False
       terminate_by_contact: False
       terminate_by_gravity: True
+      terminate_when_motion_end: True
       terminate_by_low_height: False
     termination_scales:
       termination_close_to_dof_pos_limit : 0.98
