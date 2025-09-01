@@ -578,7 +578,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
     
     _kick_motion_res_counter_multistep = -1
     _kick_motion_res_multiplestep_buffer: Optional[Dict[str, torch.Tensor]] = None
-    def kick_motion_res_multiplestep(self) -> Dict[str, torch.Tensor]:
+    def kick_motion_res_multiplestep(self, offset) -> Dict[str, torch.Tensor]:
         if self._kick_motion_res_counter_multistep == self.common_step_counter:
             return self._kick_motion_res_multiplestep_buffer # type: ignore
         
@@ -587,7 +587,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
 
         for i in range(len(self.tar_obs_steps)):
             motion_times = (self.episode_length_buf + self.tar_obs_steps[i]) * self.dt + self.motion_start_times
-            offset = self.env_origins
+            # offset = self.env_origins
             motion_res = self._motion_lib.get_motion_state(self.motion_ids, motion_times, offset)
             for key, value in motion_res.items():
                 if key not in buffer:
@@ -612,7 +612,7 @@ class LeggedRobotMotionTracking(LeggedRobotBase):
         motion_res = self.kick_motion_res()
 
         if "tar_obs_mimic" in self.config.obs and self.config.obs.tar_obs_mimic.enabled:
-            future_motion_buffer = self.kick_motion_res_multiplestep()
+            future_motion_buffer = self.kick_motion_res_multiplestep(offset=None)
             future_root_pos = future_motion_buffer['root_pos']
             future_root_rot = future_motion_buffer['root_rot']
             future_root_vel = future_motion_buffer['root_vel']

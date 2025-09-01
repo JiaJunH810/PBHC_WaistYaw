@@ -854,7 +854,10 @@ class LeggedRobotBase(BaseTask):
 
     def _update_average_episode_length(self, env_ids):
         num = len(env_ids)
-        current_average_episode_length = torch.mean(self.last_episode_length_buf[env_ids], dtype=torch.float)
+        # 计算每个回合的平均长度时，调节为其pkl长度的占比*100
+        # 由于motion_start_times是在这个函数之后重置, 所以此时的值有效
+        percentage_episode_length_buf = self.last_episode_length_buf[env_ids] * self.dt / (self.motion_len[env_ids] - self.motion_start_times[env_ids]) * 100
+        current_average_episode_length = torch.mean(percentage_episode_length_buf, dtype=torch.float)
         
         self.average_episode_length = self.average_episode_length * (1 - num / self.num_compute_average_epl) + current_average_episode_length * (num / self.num_compute_average_epl)
 
@@ -1027,8 +1030,7 @@ class LeggedRobotBase(BaseTask):
         else:
             lower_soft_limit = self.simulator.dof_pos_limits[:, 0]
             upper_soft_limit = self.simulator.dof_pos_limits[:, 1]
-        lower_soft_limit[[5, 11]] = lower_soft_limit[[5, 11]].clone() / 5
-        upper_soft_limit[[5, 11]] = upper_soft_limit[[5, 11]].clone() / 5
+
         out_of_limits = -(self.simulator.dof_pos - lower_soft_limit).clip(max=0.) # lower limit
         out_of_limits += (self.simulator.dof_pos - upper_soft_limit).clip(min=0.)
         return torch.sum(out_of_limits, dim=1)
