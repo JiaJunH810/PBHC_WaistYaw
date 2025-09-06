@@ -5,13 +5,13 @@ def g1_mapping():
     extend_config = [
         {
             "joint_name": "left_rubber_hand_2",
-            "parent_name": "left_wrist_yaw_link",
+            "parent_name": "left_wrist_roll_rubber_hand",
             "pos": [0.12, 0, 0.0],
             "rot": [1.0, 0.0, 0.0, 0.0],
         },
         {
             "joint_name": "right_rubber_hand_2",
-            "parent_name": "right_wrist_yaw_link",
+            "parent_name": "right_wrist_roll_rubber_hand",
             "pos": [0.12, 0, 0.0],
             "rot": [1.0, 0.0, 0.0, 0.0],
         },
@@ -52,6 +52,8 @@ def g1_mapping():
         ["right_elbow_link", "R_Elbow"],
         ["right_rubber_hand_2", "R_Hand"],
         ["head", "Head"],
+        ["left_wrist_roll_rubber_hand", "L_Wrist"],
+        ["right_wrist_roll_rubber_hand", "R_Wrist"],
     ]
 
     smpl_pose_modifier = [
@@ -62,7 +64,7 @@ def g1_mapping():
         {"R_Elbow": "[0, np.pi/2, 0]"},
     ]
 
-    asset_file = "../description/robots/g1/g1_29dof_rev_1_0.xml"
+    asset_file = "../description/robots/g1/g1_23dof.xml"
 
     return EasyDict(
         extend_config=extend_config,

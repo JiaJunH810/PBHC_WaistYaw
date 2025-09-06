@@ -68,7 +68,11 @@ class LeggedAMP(BaseTask):
         self.dif_dof_pos = torch.zeros(self.num_envs, self.num_dof, device=self.device)
         self.dif_dof_vel = torch.zeros(self.num_envs, self.num_dof, device=self.device)
         self.dif_root_pos = torch.zeros(self.num_envs, 3, device=self.device)
-        
+
+        if self.is_evaluating:
+            self.motion_times = torch.zeros(self.num_envs, dtype=torch.float32, device=self.device)
+        else:
+            self.motion_times = self.amp_loader.traj_time_sample_batch(self.motion_ids)
 
 
     def _init_buffers(self):
@@ -373,9 +377,9 @@ class LeggedAMP(BaseTask):
         self.contacts = ( self.simulator.contact_forces[:, self.feet_indices, :].norm(dim=-1) > 1.).float()
         self.contacts_filt = torch.logical_or(self.contacts, self.last_contacts).float()
         
-        
-        self._update_reference_states()
         self.motion_times += self.motion_frame_durations
+        self._update_reference_states()
+        
         
         # 计算差异
         self.dif_dof_pos = self.ref_dof_pos - self.simulator.dof_pos
@@ -533,7 +537,7 @@ class LeggedAMP(BaseTask):
         # self.log_dict["terminate_by_time_out"] = self.time_out_buf.float().mean()
         self.reset_buf_terminate_by["time_out"] = self.time_out_buf
         if self.config.termination.terminate_when_motion_end:
-            self.reset_buf_terminate_by["motion_end"] = self.motion_times + self.motion_frame_durations > self.motion_lengths
+            self.reset_buf_terminate_by["motion_end"] = self.motion_times + self.motion_frame_durations * 2 > self.motion_lengths
             self.time_out_buf |= self.reset_buf_terminate_by["motion_end"]
 
     def reset_envs_idx(self, env_ids, target_states=None, target_buf=None):
@@ -1175,6 +1179,13 @@ class LeggedAMP(BaseTask):
     def _reward_teleop_root_position(self):
         root_diff = self.dif_root_pos
         root_dist = (root_diff**2).mean(dim=-1)
+        r_root = torch.exp(-root_dist / self.config.rewards.reward_tracking_sigma.teleop_root_pos)
+
+        return r_root
+    # 根节点位置跟踪（只跟踪z轴）
+    def _reward_teleop_root_position_z(self):
+        root_diff = self.dif_root_pos[:, 2]
+        root_dist = root_diff**2
         r_root = torch.exp(-root_dist / self.config.rewards.reward_tracking_sigma.teleop_root_pos)
 
         return r_root

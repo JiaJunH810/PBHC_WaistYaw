@@ -10,8 +10,8 @@ terrain:
   border_size : 40 # [m]
   curriculum : False
   # curriculum : False
-  static_friction: 0.2
-  dynamic_friction: 0.2
+  static_friction: 0.05
+  dynamic_friction: 0.05
   restitution: 0.0
   # rough terrain only:
   measure_heights : False # keep it False

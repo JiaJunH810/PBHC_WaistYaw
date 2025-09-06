@@ -63,6 +63,7 @@ class AMPDiscriminator(nn.Module):
         return grad_pen
 
     def predict_amp_reward(self, amp_obs, amp_next_obs, task_rewards, normalizer=None):
+        self.eval()
         if normalizer:
             amp_obs = normalizer.normalize_torch(amp_obs)
             amp_next_obs = normalizer.normalize_torch(amp_next_obs)
@@ -77,6 +78,8 @@ class AMPDiscriminator(nn.Module):
         combined_reward = ((1.0 - self.task_reward_lerp) * style_reward * self.amp_reward_scale +
                            self.task_reward_lerp * task_rewards)
         
+        self.train()
+
         return combined_reward
     
 class PPOActor(nn.Module):

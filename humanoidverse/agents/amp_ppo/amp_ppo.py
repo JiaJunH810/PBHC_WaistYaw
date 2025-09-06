@@ -212,12 +212,12 @@ class AMPPPO(BaseAlgo):
     def _eval_mode(self):
         self.actor.eval()
         self.critic.eval()
-        # self.discriminator.eval()
+        self.discriminator.eval()
 
     def _train_mode(self):
         self.actor.train()
         self.critic.train()
-        # self.discriminator.train()
+        self.discriminator.train()
 
     def load(self, ckpt_path):
         # import ipdb; ipdb.set_trace()
