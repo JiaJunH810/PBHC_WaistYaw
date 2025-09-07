@@ -1,0 +1,118 @@
+# @package _global_
+
+# defaults:
+#   - reward_base
+
+
+rewards:
+  set_reward: Weiji
+  set_reward_date: 20250417
+  only_positive_rewards: False
+  reward_scales:
+      teleop_contact_mask: 0.5
+      # teleop_contact_mask: 0.5
+      teleop_max_joint_position: 1.0
+
+      teleop_body_position_extend: 1.0
+      teleop_vr_3point: 1.6
+      teleop_body_position_feet: 1.5
+      teleop_body_rotation_extend: 0.5
+      teleop_body_ang_velocity_extend: 1.0  # Increased from 0.5 to boost low-magnitude angular velocity tracking (observed ~0.01-0.13) without overpowering others
+      teleop_body_velocity_extend: 1.0  # Increased from 0.5 to balance with other tracking terms (observed ~0.18-0.25)
+      teleop_joint_position: 1.0
+      teleop_joint_velocity: 1.0
+      penalty_torques: -0.000001
+      # penalty_dof_vel: -0.0001
+      # penalty_dof_acc: -2.5e-8
+      penalty_action_rate: -0.2  # Reduced magnitude from -0.5 to lessen dominance (observed -1.0 to -3.6 per step)
+      feet_air_time: 1.0
+      penalty_feet_contact_forces: -0.005  # Reduced from -0.01 to balance high negative impact (observed -2.5 to -3.7)
+      penalty_stumble: -2.0
+      penalty_slippage: -1.0
+      limits_dof_pos: -10.0
+      limits_dof_vel: -5.0
+      limits_torque: -2.0  # Reduced from -5.0 to mitigate large negatives (observed -2 to -10)
+      termination: -100.0  # Reduced from -200.0 to reduce episode-end penalty dominance while keeping incentive to avoid termination
+      collision: -15.0  # Reduced from -30.0 to balance with positives (observed -5 to -40)
+
+  teleop_body_pos_lowerbody_weight : 1.0
+  teleop_body_pos_upperbody_weight : 1.0
+
+  desired_feet_max_height_for_this_air: 0.2
+
+  reward_tracking_sigma:
+    teleop_max_joint_pos: 1.0  # Increased from original to make max joint pos reward less sensitive (errors ~0.9-2.3, rewards ~0.35-0.62)
+
+    teleop_upper_body_pos: 0.02  # Slightly increased from 0.015 to soften penalty for upper body errors (emas ~0.015-0.02)
+    teleop_lower_body_pos: 0.02  # Slightly increased from 0.015 to balance with upper (emas ~0.015-0.02)
+    teleop_vr_3point_pos: 0.02  # Slightly increased from 0.015 for better gradient in 3-point tracking (emas ~0.015-0.02)
+    teleop_feet_pos: 0.015  # Increased from 0.01 to improve informativeness (emas ~0.01-0.03, rewards ~0.89-1.03)
+
+    teleop_body_rot: 0.15  # Increased from 0.1 to boost rotation tracking rewards (emas ~0.1-0.27, rewards ~0.27-0.30)
+    teleop_body_vel: 1.5  # Increased from 1.0 for velocity tracking (emas ~1.0-1.7, rewards ~0.18-0.25)
+    teleop_body_ang_vel: 20.0  # Increased from 15.0 to make angular vel more rewarding (emas ~6-15, rewards ~0.01-0.13)
+    teleop_joint_pos: 0.4  # Increased from 0.3 for joint pos (emas ~0.2-0.57, rewards ~0.42-0.85)
+    teleop_joint_vel: 40.0  # Increased from 30.0 to enhance velocity signals (emas ~9-107, rewards ~0.01-0.29)
+
+  adaptive_tracking_sigma:
+    enable: True
+    alpha: 5e-4  # Reduced from 1e-3 to slow adaptation, allowing more stable gradients early on
+    type: origin # origin, mean, scale
+    scale: 1.0
+
+
+  locomotion_max_contact_force: 400.0
+  desired_feet_air_time: 0.3
+
+  reward_penalty_curriculum: True
+  reward_initial_penalty_scale : 0.10
+  reward_min_penalty_scale: 0.0
+  reward_max_penalty_scale: 1.0
+  reward_penalty_level_down_threshold: 50  # Increased from 40 to delay penalty ramp-up (epl grows to ~90, allows longer episodes before full penalties)
+  reward_penalty_level_up_threshold: 60  # Increased from 42 to give more room for improvement before increasing penalties
+  reward_penalty_degree: 0.00001 # 0.00001
+  num_compute_average_epl: 10000
+
+  reward_limit:
+    soft_dof_pos_limit: 0.9
+    soft_dof_vel_limit: 0.9
+    soft_torque_limit: 0.825
+
+    reward_limits_curriculum:
+      soft_dof_pos_curriculum: True
+      soft_dof_pos_initial_limit: 0.95
+      soft_dof_pos_max_limit: 0.95
+      soft_dof_pos_min_limit: 0.95
+      soft_dof_pos_curriculum_degree: 0.00000025
+      soft_dof_pos_curriculum_level_down_threshold: 50  # Increased from 40 to align with penalty curriculum
+      soft_dof_pos_curriculum_level_up_threshold: 60  # Increased from 42
+
+      soft_dof_vel_curriculum: True
+      soft_dof_vel_initial_limit: 0.95
+      soft_dof_vel_max_limit: 0.95
+      soft_dof_vel_min_limit: 0.95
+      soft_dof_vel_curriculum_degree: 0.00000025
+      soft_dof_vel_curriculum_level_down_threshold: 50  # Increased from 40
+      soft_dof_vel_curriculum_level_up_threshold: 60  # Increased from 42
+
+      soft_torque_curriculum: True
+      soft_torque_initial_limit: 0.85
+      soft_torque_max_limit: 0.85
+      soft_torque_min_limit: 0.85
+      soft_torque_curriculum_degree: 0.00000025
+      soft_torque_curriculum_level_down_threshold: 50  # Increased from 40
+      soft_torque_curriculum_level_up_threshold: 60  # Increased from 42
+
+  reward_penalty_reward_names : [
+    "penalty_torques",
+    "penalty_dof_acc",
+    "penalty_dof_vel",
+    "penalty_action_rate",
+    "limits_dof_pos",
+    "limits_dof_vel",
+    "limits_torque",
+    "feet_heading_alignment",
+    "penalty_feet_ori",
+    "penalty_slippage",
+    "collision"
+    ]
